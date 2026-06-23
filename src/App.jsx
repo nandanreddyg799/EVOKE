@@ -68,80 +68,86 @@ const FINISHES_DEFAULT = [
   { id: "satin-black", label: "Satin Black", hex: "#2C2C2C" },
 ];
 
+// ── The 6 top-level categories shown in navigation ───────────
+// subcategory IDs live only inside the subcategories array (never as separate rows).
+// Products: categoryId = one of the 6 IDs, subcategoryId = a leaf subcategory id.
 const CATEGORIES_DEFAULT = [
   {
     id: "bath-fittings", name: "Bath Fittings", descriptor: "Mixers, faucets and integrated systems",
     subcategories: [
-      { id: "wall-mounted-mixers", name: "Wall-Mounted Mixers", descriptor: "Precision engineered for wall installation" },
-      { id: "deck-mounted-mixers", name: "Deck-Mounted Mixers", descriptor: "Surface-mounted basin and bath mixers" },
-      { id: "concealed-mixers", name: "Concealed Mixers", descriptor: "Recessed systems for architectural interiors" },
-      { id: "sensor-faucets", name: "Sensor Faucets", descriptor: "Touchless precision for hospitality spaces" },
+      { id: "wall-mounted-mixers",  name: "Wall-Mounted Mixers",  descriptor: "Precision engineered for wall installation" },
+      { id: "deck-mounted-mixers",  name: "Deck-Mounted Mixers",  descriptor: "Surface-mounted basin and bath mixers" },
+      { id: "concealed-mixers",     name: "Concealed Mixers",     descriptor: "Recessed systems for architectural interiors" },
+      { id: "sensor-faucets",       name: "Sensor Faucets",       descriptor: "Touchless precision for hospitality spaces" },
     ]
   },
   {
     id: "shower-systems", name: "Shower Systems", descriptor: "Rain, handheld and thermostatic",
     subcategories: [
-      { id: "rain-showerheads", name: "Rain Showerheads", descriptor: "Overhead rainfall experience" },
-      { id: "handheld-showers", name: "Handheld Showers", descriptor: "Flexible precision delivery" },
+      { id: "rain-showerheads",     name: "Rain Showerheads",     descriptor: "Overhead rainfall experience" },
+      { id: "handheld-showers",     name: "Handheld Showers",     descriptor: "Flexible precision delivery" },
       { id: "thermostatic-systems", name: "Thermostatic Systems", descriptor: "Precision temperature control" },
-      { id: "shower-columns", name: "Shower Columns", descriptor: "Integrated column systems" },
+      { id: "shower-columns",       name: "Shower Columns",       descriptor: "Integrated column systems" },
     ]
   },
   {
     id: "wash-basins", name: "Wash Basins", descriptor: "Counter, wall-hung and vessel",
     subcategories: [
-      { id: "counter-top-basins", name: "Counter-Top Basins", descriptor: "Surface-mounted installations" },
-      { id: "wall-hung-basins", name: "Wall-Hung Basins", descriptor: "Clean architectural suspension" },
-      { id: "vessel-basins", name: "Vessel Basins", descriptor: "Above-counter statement pieces" },
+      { id: "counter-top-basins",   name: "Counter-Top Basins",   descriptor: "Surface-mounted installations" },
+      { id: "wall-hung-basins",     name: "Wall-Hung Basins",     descriptor: "Clean architectural suspension" },
+      { id: "vessel-basins",        name: "Vessel Basins",        descriptor: "Above-counter statement pieces" },
       { id: "under-counter-basins", name: "Under-Counter Basins", descriptor: "Seamless vanity integration" },
     ]
   },
   {
-    id: "luxury-vanities", name: "Luxury Vanities", descriptor: "Custom cabinetry and integrated units",
+    id: "luxury-vanities", name: "Vanities", descriptor: "Custom cabinetry and integrated units",
     subcategories: [
-      { id: "freestanding-vanities", name: "Freestanding Vanities", descriptor: "Statement floor-standing units" },
-      { id: "wall-hung-vanities", name: "Wall-Hung Vanities", descriptor: "Floating minimalist storage" },
-      { id: "double-vanities", name: "Double Vanities", descriptor: "His and hers specifications" },
-      { id: "custom-units", name: "Custom Units", descriptor: "Bespoke project specifications" },
+      { id: "wall-hung-vanities",   name: "Wall-Hung Vanities",   descriptor: "Floating minimalist storage" },
+      { id: "freestanding-vanities",name: "Freestanding Vanities",descriptor: "Statement floor-standing units" },
+      { id: "double-vanities",      name: "Double Vanities",      descriptor: "His and hers specifications" },
+      { id: "custom-units",         name: "Custom Units",         descriptor: "Bespoke project specifications" },
     ]
   },
   {
     id: "mirrors", name: "Mirrors", descriptor: "Framed, frameless and illuminated",
     subcategories: [
-      { id: "framed-mirrors", name: "Framed Mirrors", descriptor: "Defined architectural frames" },
-      { id: "frameless-mirrors", name: "Frameless Mirrors", descriptor: "Edge-to-edge glass clarity" },
-      { id: "led-smart-mirrors", name: "LED Smart Mirrors", descriptor: "Integrated illumination systems" },
-      { id: "shaving-mirrors", name: "Shaving Mirrors", descriptor: "Precision magnification" },
+      { id: "led-smart-mirrors",    name: "LED Smart Mirrors",    descriptor: "Integrated illumination systems" },
+      { id: "frameless-mirrors",    name: "Frameless Mirrors",    descriptor: "Edge-to-edge glass clarity" },
+      { id: "framed-mirrors",       name: "Framed Mirrors",       descriptor: "Defined architectural frames" },
+      { id: "shaving-mirrors",      name: "Shaving Mirrors",      descriptor: "Precision magnification" },
     ]
   },
   {
-    id: "sanitaryware", name: "Sanitaryware", descriptor: "WCs, bidets and cisterns",
+    // Merged category: sanitaryware + bathroom lighting + accessories
+    id: "sanitaryware-accessories", name: "Sanitaryware & Accessories",
+    descriptor: "WCs, lighting, towel rails and bathroom accessories",
     subcategories: [
-      { id: "wall-hung-wcs", name: "Wall-Hung WCs", descriptor: "Floating pan installations" },
-      { id: "close-coupled-wcs", name: "Close-Coupled WCs", descriptor: "Classic integrated cisterns" },
-      { id: "bidets", name: "Bidets", descriptor: "Italian hygiene tradition" },
-      { id: "cisterns", name: "Cisterns", descriptor: "Concealed and exposed systems" },
-    ]
-  },
-  {
-    id: "bathroom-lighting", name: "Bathroom Lighting", descriptor: "Integrated and architectural lighting",
-    subcategories: [
-      { id: "ceiling-fixtures", name: "Ceiling Fixtures", descriptor: "Overhead ambient systems" },
-      { id: "mirror-lighting", name: "Mirror Lighting", descriptor: "Task and vanity illumination" },
-      { id: "recessed-lighting", name: "Recessed Lighting", descriptor: "Flush architectural integration" },
-      { id: "heated-lamps", name: "Heated Lamps", descriptor: "Warmth and ambience combined" },
-    ]
-  },
-  {
-    id: "accessories", name: "Accessories", descriptor: "Towel rails, hooks and holders",
-    subcategories: [
-      { id: "towel-rails", name: "Towel Rails", descriptor: "Heated and unheated systems" },
-      { id: "soap-dispensers", name: "Soap Dispensers", descriptor: "Wall-mounted and deck options" },
-      { id: "robe-hooks", name: "Robe Hooks", descriptor: "Single and double configurations" },
-      { id: "toilet-roll-holders", name: "Toilet Roll Holders", descriptor: "Recessed and surface-mounted" },
+      // Sanitaryware
+      { id: "wall-hung-wcs",        name: "Wall-Hung WCs",        descriptor: "Floating pan installations" },
+      { id: "close-coupled-wcs",    name: "Close-Coupled WCs",    descriptor: "Classic integrated cisterns" },
+      { id: "bidets",               name: "Bidets",               descriptor: "Italian hygiene tradition" },
+      { id: "cisterns",             name: "Cisterns",             descriptor: "Concealed and exposed systems" },
+      // Bathroom lighting
+      { id: "mirror-lighting",      name: "Mirror Lighting",      descriptor: "Task and vanity illumination" },
+      { id: "recessed-lighting",    name: "Recessed Lighting",    descriptor: "Flush architectural integration" },
+      { id: "ceiling-fixtures",     name: "Ceiling Fixtures",     descriptor: "Overhead ambient systems" },
+      { id: "heated-lamps",         name: "Heated Lamps",         descriptor: "Warmth and ambience combined" },
+      // Accessories
+      { id: "towel-rails",          name: "Towel Rails",          descriptor: "Heated and unheated systems" },
+      { id: "soap-dispensers",      name: "Soap Dispensers",      descriptor: "Wall-mounted and deck options" },
+      { id: "robe-hooks",           name: "Robe Hooks",           descriptor: "Single and double configurations" },
+      { id: "toilet-roll-holders",  name: "Toilet Roll Holders",  descriptor: "Recessed and surface-mounted" },
     ]
   },
 ];
+
+// Legacy category ID → new top-level category ID mapping
+// Used to remap products whose categoryId is an old standalone category.
+const LEGACY_CAT_MAP = {
+  "sanitaryware":     "sanitaryware-accessories",
+  "bathroom-lighting":"sanitaryware-accessories",
+  "accessories":      "sanitaryware-accessories",
+};
 
 const PRODUCTS_DEFAULT = [
   {
@@ -301,7 +307,7 @@ const PRODUCTS_DEFAULT = [
   // ── Sanitaryware ─────────────────────────────────────────
   {
     id: "EV-SW-001", name: "Forma Wall-Hung WC",
-    categoryId: "sanitaryware", subcategoryId: "wall-hung-wcs", collectionId: "verona",
+    categoryId: "sanitaryware-accessories", subcategoryId: "wall-hung-wcs", collectionId: "verona",
     published: true, featured: true, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A sculptural wall-hung WC with a softly tapered form. Rimless wash technology, dual flush, and a whisper-close seat.",
@@ -320,7 +326,7 @@ const PRODUCTS_DEFAULT = [
   },
   {
     id: "EV-SW-002", name: "Alto Concealed Cistern",
-    categoryId: "sanitaryware", subcategoryId: "cisterns", collectionId: "verona",
+    categoryId: "sanitaryware-accessories", subcategoryId: "cisterns", collectionId: "verona",
     published: true, featured: false, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "In-wall concealed cistern frame for wall-hung WC installations. Adjustable height, pneumatic flush, and full-access service panel.",
@@ -340,7 +346,7 @@ const PRODUCTS_DEFAULT = [
   // ── Bathroom Lighting ─────────────────────────────────────
   {
     id: "EV-BL-001", name: "Lume Mirror Light Bar",
-    categoryId: "bathroom-lighting", subcategoryId: "mirror-lighting", collectionId: "milano",
+    categoryId: "sanitaryware-accessories", subcategoryId: "mirror-lighting", collectionId: "milano",
     published: true, featured: true, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A slender architectural LED bar for mirror-side task lighting. High-CRI output, dimmable, and IP44 rated for wet zone installation.",
@@ -359,7 +365,7 @@ const PRODUCTS_DEFAULT = [
   },
   {
     id: "EV-BL-002", name: "Aureo Recessed Ceiling Light",
-    categoryId: "bathroom-lighting", subcategoryId: "recessed-lighting", collectionId: "como",
+    categoryId: "sanitaryware-accessories", subcategoryId: "recessed-lighting", collectionId: "como",
     published: true, featured: false, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A flush architectural downlight engineered for wet zone ceilings. Anti-glare optic, wide beam distribution, and IP65 rated.",
@@ -379,7 +385,7 @@ const PRODUCTS_DEFAULT = [
   // ── Accessories ───────────────────────────────────────────
   {
     id: "EV-AC-001", name: "Sera Towel Rail",
-    categoryId: "accessories", subcategoryId: "towel-rails", collectionId: "verona",
+    categoryId: "sanitaryware-accessories", subcategoryId: "towel-rails", collectionId: "verona",
     published: true, featured: true, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A wall-mounted double towel rail in solid brass. Clean horizontal geometry with concealed fixings and a fine E-monogrammed end cap.",
@@ -398,7 +404,7 @@ const PRODUCTS_DEFAULT = [
   },
   {
     id: "EV-AC-002", name: "Nera Robe Hook Set",
-    categoryId: "accessories", subcategoryId: "robe-hooks", collectionId: "verona",
+    categoryId: "sanitaryware-accessories", subcategoryId: "robe-hooks", collectionId: "verona",
     published: true, featured: false, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A set of two double robe hooks in solid brass with a fine E-monogram impression at the base. Concealed fixing system.",
@@ -619,7 +625,7 @@ const PRODUCTS_DEFAULT = [
   // ── Sanitaryware — additional ────────────────────────────────
   {
     id: "EV-SW-003", name: "Puro Close-Coupled WC",
-    categoryId: "sanitaryware", subcategoryId: "close-coupled-wcs", collectionId: "como",
+    categoryId: "sanitaryware-accessories", subcategoryId: "close-coupled-wcs", collectionId: "como",
     published: true, featured: false, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A close-coupled WC with an integrated cistern in high-gloss vitreous china. Rimless bowl, dual-flush push button, and a soft-close quick-release seat.",
@@ -638,7 +644,7 @@ const PRODUCTS_DEFAULT = [
   },
   {
     id: "EV-SW-004", name: "Fonte Wall-Hung Bidet",
-    categoryId: "sanitaryware", subcategoryId: "bidets", collectionId: "milano",
+    categoryId: "sanitaryware-accessories", subcategoryId: "bidets", collectionId: "milano",
     published: true, featured: false, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A wall-hung bidet in high-gloss vitreous china. Concealed trap, single tap hole, and an overflow to the front. Pairs with the Elara mixer series.",
@@ -659,7 +665,7 @@ const PRODUCTS_DEFAULT = [
   // ── Bathroom Lighting — additional ───────────────────────────
   {
     id: "EV-BL-003", name: "Volta Ceiling Fixture",
-    categoryId: "bathroom-lighting", subcategoryId: "ceiling-fixtures", collectionId: "verona",
+    categoryId: "sanitaryware-accessories", subcategoryId: "ceiling-fixtures", collectionId: "verona",
     published: true, featured: false, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A surface-mounted architectural ceiling fixture in die-cast aluminium. IP44 rated, 24W, opal diffuser for even shadow-free illumination across the full bathroom plane.",
@@ -678,7 +684,7 @@ const PRODUCTS_DEFAULT = [
   },
   {
     id: "EV-BL-004", name: "Calda Heated Lamp",
-    categoryId: "bathroom-lighting", subcategoryId: "heated-lamps",
+    categoryId: "sanitaryware-accessories", subcategoryId: "heated-lamps",
     collectionId: "como",
     published: true, featured: false, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
@@ -700,7 +706,7 @@ const PRODUCTS_DEFAULT = [
   // ── Accessories — additional ──────────────────────────────────
   {
     id: "EV-AC-003", name: "Deco Soap Dispenser",
-    categoryId: "accessories", subcategoryId: "soap-dispensers", collectionId: "milano",
+    categoryId: "sanitaryware-accessories", subcategoryId: "soap-dispensers", collectionId: "milano",
     published: true, featured: false, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A wall-mounted soap or lotion dispenser in solid brass with a 300ml capacity. E-monogram pump head, concealed fixing plate, and a satin-smooth pump action.",
@@ -719,7 +725,7 @@ const PRODUCTS_DEFAULT = [
   },
   {
     id: "EV-AC-004", name: "Asse Toilet Roll Holder",
-    categoryId: "accessories", subcategoryId: "toilet-roll-holders", collectionId: "verona",
+    categoryId: "sanitaryware-accessories", subcategoryId: "toilet-roll-holders", collectionId: "verona",
     published: true, featured: false, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A surface-mounted toilet roll holder in solid brass. Sprung arm with a square-profile back plate and concealed fixings. Part of the Verona accessory set.",
@@ -1403,7 +1409,7 @@ const HomePage = ({ navigate, categories, products, collections }) => {
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "#D8CEC0"; e.currentTarget.style.transform = "translateY(0)"; }}
               >
                 <ImageWithWatermark
-                  src={{"bath-fittings":imgVHBF001,"shower-systems":imgVHSS001,"wash-basins":imgVHWB001,"luxury-vanities":imgVHLV001}[cat.id]}
+                  src={{"bath-fittings":imgVHBF001,"shower-systems":imgVHSS001,"wash-basins":imgVHWB001,"luxury-vanities":imgVHLV001,"mirrors":imgEVMR001,"sanitaryware-accessories":imgEVSW001}[cat.id]}
                   aspectClass="aspect-square" monogramSize={24}
                   alt={cat.name} />
                 <div className="px-5 py-6" style={{ background: "#F5F1EA" }}>
@@ -3876,7 +3882,7 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
   const setDim = (key, value) => setForm(p => ({ ...p, dimensions: { ...p.dimensions, [key]: value } }));
 
   // Auto-generate product code
-  const catMap = { "bath-fittings": "BF", "shower-systems": "SS", "wash-basins": "WB", "luxury-vanities": "LV", "mirrors": "MI", "sanitaryware": "SW", "bathroom-lighting": "BL", "accessories": "AC" };
+  const catMap = { "bath-fittings": "BF", "shower-systems": "SS", "wash-basins": "WB", "luxury-vanities": "LV", "mirrors": "MI", "sanitaryware-accessories": "SA" };
   const suggestCode = () => {
     if (!form.categoryId) return "";
     const cat = catMap[form.categoryId] || "XX";
@@ -5045,7 +5051,7 @@ export default function App() {
     (async () => {
       try {
         // Seed default collections, finishes, categories if DB is empty
-        await seedDefaults(COLLECTIONS, FINISHES_DEFAULT, CATEGORIES_DEFAULT);
+        await seedDefaults(COLLECTIONS, FINISHES_DEFAULT, CATEGORIES_DEFAULT, PRODUCTS_DEFAULT);
 
         const [dbProducts, dbCollections, dbFinishes, dbCategories] = await Promise.all([
           fetchProducts(),
@@ -5057,13 +5063,37 @@ export default function App() {
         if (!alive) return;
 
         // Only replace state if we got real data back from Supabase
-        if (dbProducts?.length)   setProducts(dbProducts);
+        if (dbProducts?.length) {
+          const localById = Object.fromEntries(PRODUCTS_DEFAULT.map(p => [p.id, p]));
+          const merged = dbProducts.map(dbP => {
+            // 1. Remap legacy categoryId values to sanitaryware-accessories
+            const remappedCat = LEGACY_CAT_MAP[dbP.categoryId] || dbP.categoryId;
+            // 2. Fall back to local bundled images when DB has none yet
+            const hasImages = Array.isArray(dbP.images) && dbP.images.length > 0;
+            const images = hasImages ? dbP.images : (localById[dbP.id]?.images || []);
+            return { ...dbP, categoryId: remappedCat, images };
+          });
+          setProducts(merged);
+        }
         if (dbCollections?.length) setCollections(dbCollections);
         if (dbFinishes?.length)    setFinishes(dbFinishes);
-        if (dbCategories?.length)  setCategories(dbCategories.map(c => ({
-          // DB stores subcategories as JSONB — ensure array
-          ...c, subcategories: c.subcategories || [],
-        })));
+        if (dbCategories?.length) {
+          // Only accept the 6 known top-level category IDs.
+          // The DB may also contain legacy flat subcategory rows — ignore them.
+          const TOP_LEVEL_IDS = [
+            "bath-fittings","shower-systems","wash-basins",
+            "luxury-vanities","mirrors","sanitaryware-accessories",
+          ];
+          const dbById = Object.fromEntries(
+            dbCategories
+              .filter(c => TOP_LEVEL_IDS.includes(c.id))
+              .map(c => [c.id, { ...c, subcategories: c.subcategories || [] }])
+          );
+          // For any top-level ID missing from DB, use the local default
+          const localById = Object.fromEntries(CATEGORIES_DEFAULT.map(c => [c.id, c]));
+          const merged = TOP_LEVEL_IDS.map(id => dbById[id] || localById[id]).filter(Boolean);
+          setCategories(merged);
+        }
       } catch (e) {
         // Supabase not configured — silently run in local mode
         console.warn("[EVOKE] Running in local mode (Supabase not configured):", e.message);
@@ -5077,8 +5107,7 @@ export default function App() {
   // ── Supabase CRUD handlers ──────────────────────────────────
   const catMap = {
     "bath-fittings": "BF", "shower-systems": "SS", "wash-basins": "WB",
-    "luxury-vanities": "LV", "mirrors": "MI", "sanitaryware": "SW",
-    "bathroom-lighting": "BL", "accessories": "AC",
+    "luxury-vanities": "LV", "mirrors": "MI", "sanitaryware-accessories": "SA",
   };
 
   const generateCode = (categoryId) => {

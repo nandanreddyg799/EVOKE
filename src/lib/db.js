@@ -276,9 +276,20 @@ export async function deleteFinish(id) {
 // CATEGORIES
 // ══════════════════════════════════════════════════════════════
 
+// The 6 canonical top-level category IDs.
+// Subcategories live only in the subcategories JSONB column, never as separate rows.
+const TOP_LEVEL_CATEGORY_IDS = [
+  'bath-fittings', 'shower-systems', 'wash-basins',
+  'luxury-vanities', 'mirrors', 'sanitaryware-accessories',
+];
+
 export async function fetchCategories() {
   return query(
-    supabase.from('categories').select('*').order('sort_order'),
+    supabase
+      .from('categories')
+      .select('*')
+      .in('id', TOP_LEVEL_CATEGORY_IDS)
+      .order('sort_order'),
     []
   );
 }
@@ -344,9 +355,10 @@ export async function fetchEnquiries() {
  * Push default collections, finishes, categories to Supabase on first run.
  * Uses ignoreDuplicates so it's safe to call on every app mount.
  */
-export async function seedDefaults(defaultCollections, defaultFinishes, defaultCategories) {
+export async function seedDefaults(defaultCollections, defaultFinishes, defaultCategories, defaultProducts = []) {
   const errors = [];
 
+  // ── Collections ──────────────────────────────────────────
   for (const col of defaultCollections) {
     const { error } = await supabase.from('collections').upsert(
       { id: col.id, name: col.name, mood: col.mood || '', description: '', sort_order: 0, active: true },
@@ -355,6 +367,7 @@ export async function seedDefaults(defaultCollections, defaultFinishes, defaultC
     if (error) errors.push(`collections/${col.id}: ${error.message}`);
   }
 
+  // ── Finishes ─────────────────────────────────────────────
   for (const fin of defaultFinishes) {
     const { error } = await supabase.from('finishes').upsert(
       { id: fin.id, label: fin.label, hex: fin.hex, description: '', active: true, sort_order: 0 },
@@ -363,6 +376,7 @@ export async function seedDefaults(defaultCollections, defaultFinishes, defaultC
     if (error) errors.push(`finishes/${fin.id}: ${error.message}`);
   }
 
+  // ── Categories ───────────────────────────────────────────
   for (const cat of defaultCategories) {
     const { error } = await supabase.from('categories').upsert(
       {
@@ -374,7 +388,56 @@ export async function seedDefaults(defaultCollections, defaultFinishes, defaultC
     if (error) errors.push(`categories/${cat.id}: ${error.message}`);
   }
 
+  // ── Products ─────────────────────────────────────────────
+  // ignoreDuplicates: true means we never overwrite a product the admin has edited.
+  // Images are intentionally left empty here — the bundled asset paths in the
+  // local JS build are hashed filenames that aren't valid Supabase Storage URLs.
+  // Admins upload real images via the product editor.
+  for (const p of defaultProducts) {
+    const row = {
+      id:                   p.id,
+      name:                 p.name,
+      category_id:          p.categoryId          || null,
+      subcategory_id:       p.subcategoryId       || null,
+      collection_id:        p.collectionId        || null,
+      published:            Boolean(p.published),
+      featured:             Boolean(p.featured),
+      stock_status:         p.stockStatus         || 'in-stock',
+      project_availability: Boolean(p.projectAvailability !== false),
+      retail_availability:  Boolean(p.retailAvailability  !== false),
+      description:          p.description         || '',
+      full_description:     p.fullDescription      || '',
+      finishes:             Array.isArray(p.finishes)      ? p.finishes      : [],
+      material:             p.material            || '',
+      additional_material:  p.additionalMaterial  || '',
+      features:             Array.isArray(p.features)      ? p.features      : [],
+      specifications:       Array.isArray(p.specifications)? p.specifications : [],
+      dimensions:           (p.dimensions && typeof p.dimensions === 'object') ? p.dimensions : {},
+      trade_price:          (p.tradePrice  != null && p.tradePrice  !== '') ? Number(p.tradePrice)  : null,
+      mrp:                  (p.mrp         != null && p.mrp         !== '') ? Number(p.mrp)         : null,
+      pricing_mode:         p.pricingMode         || 'on-request',
+      pricing_note:         p.pricingNote         || '',
+      sku:                  p.sku                 || '',
+      tags:                 Array.isArray(p.tags)            ? p.tags           : [],
+      related_products:     Array.isArray(p.relatedProducts) ? p.relatedProducts : [],
+      meta_title:           p.metaTitle           || '',
+      meta_description:     p.metaDescription     || '',
+      images:               [],   // no bundled asset paths — admins upload via editor
+      cad_file:             null,
+      bim_file:             null,
+      tech_data_sheet:      null,
+      installation_manual:  null,
+      dimension_diagram:    null,
+    };
+    const { error } = await supabase.from('products').upsert(row, {
+      onConflict: 'id',
+      ignoreDuplicates: true,   // ← preserve any admin edits
+    });
+    if (error) errors.push(`products/${p.id}: ${error.message}`);
+  }
+
   if (errors.length) console.error('[seedDefaults] errors:', errors);
+  else console.log(`[seedDefaults] seeded ${defaultCollections.length} collections, ${defaultFinishes.length} finishes, ${defaultCategories.length} categories, ${defaultProducts.length} products`);
 }
 
 // ── Utility ──────────────────────────────────────────────────
