@@ -2,6 +2,14 @@
 // Complete SPA: Public Site + Admin Panel
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  fetchProducts, saveProduct, deleteProduct,
+  fetchCollections, saveCollection, deleteCollection,
+  fetchFinishes, saveFinish, deleteFinish,
+  fetchCategories, saveCategory,
+  submitEnquiry,
+  seedDefaults,
+} from "./lib/db.js";
 
 // ── Product images (Vite resolves & hashes these at build time) ──
 import imgVHBF001 from "./assets/VH-BF-001.jpg";
@@ -1191,68 +1199,74 @@ const SearchBar = ({ navigate }) => {
     if (q) navigate("search", { query: q });
   };
 
+  // Shared vertical rhythm: 20px padding-top, 20px padding-bottom on BOTH
+  // input and button. The form has no border — each child owns its own
+  // borderBottom at the same distance from baseline → pixel-perfect alignment.
+  const rowPad = { paddingTop: 20, paddingBottom: 20 };
+  const BORDER = "1px solid rgba(167,163,155,0.25)";
+
   return (
-    <form onSubmit={handleSubmit}
-      className="flex items-stretch gap-0"
-      style={{ borderTop: "1px solid rgba(167,163,155,0.2)", borderBottom: "1px solid rgba(167,163,155,0.2)" }}>
+    <div style={{ borderTop: BORDER, borderBottom: BORDER }}>
+      <form onSubmit={handleSubmit} className="flex items-end gap-0">
 
-      {/* Search icon — vertically centred inside the row */}
-      <div className="flex items-center flex-shrink-0" style={{ padding: "0 20px" }}>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ opacity: 0.5, display: "block" }}>
-          <circle cx="6.5" cy="6.5" r="5.5" stroke="#F5F1EA" strokeWidth="1.2" />
-          <line x1="10.5" y1="10.5" x2="14.5" y2="14.5" stroke="#F5F1EA" strokeWidth="1.2" strokeLinecap="round" />
-        </svg>
-      </div>
+        {/* Search icon */}
+        <div className="flex items-center flex-shrink-0"
+          style={{ padding: "0 20px", paddingBottom: 20, paddingTop: 20 }}>
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ opacity: 0.45, display: "block" }}>
+            <circle cx="6.5" cy="6.5" r="5.5" stroke="#F5F1EA" strokeWidth="1.3" />
+            <line x1="10.5" y1="10.5" x2="14.5" y2="14.5" stroke="#F5F1EA" strokeWidth="1.3" strokeLinecap="round" />
+          </svg>
+        </div>
 
-      {/* Input — grows to fill space, 22px top+bottom padding, line-height anchors text */}
-      <input
-        ref={inputRef}
-        type="text"
-        value={query}
-        onChange={e => setQuery(e.target.value)}
-        placeholder={`Try "${placeholder}"`}
-        className="font-body text-warm-white flex-1"
-        style={{
-          fontSize: 14, fontWeight: 300, letterSpacing: "0.05em", lineHeight: 1,
-          background: "transparent", border: "none",
-          padding: "22px 0",
-          outline: "none", color: "#F5F1EA",
-          alignSelf: "stretch",
-        }}
-      />
+        {/* Input — borderBottom sits at row bottom edge */}
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder={`Try "${placeholder}"`}
+          className="font-body text-warm-white flex-1"
+          style={{
+            fontSize: 14, fontWeight: 300, letterSpacing: "0.04em",
+            background: "transparent", outline: "none", color: "#F5F1EA",
+            border: "none",
+            ...rowPad,
+          }}
+        />
 
-      {/* Hint chips — centred vertically */}
-      <div className="hidden lg:flex items-center gap-2 px-4 flex-shrink-0">
-        {EXAMPLE_SEARCHES.slice(0, 3).map(ex => (
-          <button
-            key={ex}
-            type="button"
-            onClick={() => { setQuery(ex); navigate("search", { query: ex }); }}
-            className="font-body transition-all duration-200"
-            style={{ fontSize: 10, letterSpacing: "0.15em", border: "1px solid rgba(167,163,155,0.3)", color: "#8F8981", padding: "4px 12px", background: "transparent", whiteSpace: "nowrap" }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(245,241,234,0.5)"; e.currentTarget.style.color = "#F5F1EA"; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(167,163,155,0.3)"; e.currentTarget.style.color = "#8F8981"; }}>
-            {ex}
-          </button>
-        ))}
-      </div>
+        {/* Hint chips — vertically centred in the row */}
+        <div className="hidden lg:flex items-center gap-2 px-4 flex-shrink-0"
+          style={{ paddingBottom: 20, paddingTop: 20 }}>
+          {EXAMPLE_SEARCHES.slice(0, 3).map(ex => (
+            <button
+              key={ex}
+              type="button"
+              onClick={() => { setQuery(ex); navigate("search", { query: ex }); }}
+              className="font-body transition-all duration-200"
+              style={{ fontSize: 10, letterSpacing: "0.15em", border: "1px solid rgba(167,163,155,0.3)", color: "#8F8981", padding: "4px 12px", background: "transparent", whiteSpace: "nowrap" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(245,241,234,0.5)"; e.currentTarget.style.color = "#F5F1EA"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(167,163,155,0.3)"; e.currentTarget.style.color = "#8F8981"; }}>
+              {ex}
+            </button>
+          ))}
+        </div>
 
-      {/* Submit button — same padding as input, left divider only, text centred */}
-      <button
-        type="submit"
-        className="font-body uppercase text-warm-white flex-shrink-0 transition-colors duration-200 flex items-center"
-        style={{
-          fontSize: 11, letterSpacing: "0.25em", lineHeight: 1,
-          padding: "22px 28px",
-          background: "transparent",
-          borderLeft: "1px solid rgba(167,163,155,0.2)",
-          alignSelf: "stretch",
-        }}
-        onMouseEnter={e => e.currentTarget.style.background = "rgba(245,241,234,0.06)"}
-        onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-        Search
-      </button>
-    </form>
+        {/* Submit — same paddingTop/paddingBottom as input → baselines match */}
+        <button
+          type="submit"
+          className="font-body uppercase text-warm-white flex-shrink-0 transition-colors duration-200"
+          style={{
+            fontSize: 11, letterSpacing: "0.25em",
+            background: "transparent",
+            borderLeft: BORDER,
+            padding: `${rowPad.paddingTop}px 28px ${rowPad.paddingBottom}px`,
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = "rgba(245,241,234,0.06)"}
+          onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+          Search
+        </button>
+      </form>
+    </div>
   );
 };
 
@@ -2322,7 +2336,10 @@ const ContactPage = ({ navigate }) => {
                 />
               </div>
               <button
-                onClick={() => setSubmitted(true)}
+                onClick={async () => {
+                  await submitEnquiry(form).catch(() => {});
+                  setSubmitted(true);
+                }}
                 className="w-full font-body uppercase transition-all duration-300"
                 style={{ fontSize: 11, letterSpacing: "0.25em", fontWeight: 400, background: "#171717", color: "#F5F1EA", padding: "16px" }}
                 onMouseEnter={e => e.currentTarget.style.background = "#0E0E0D"}
@@ -2440,7 +2457,7 @@ const SearchPage = ({ navigate, query, products, categories }) => {
       <div style={{ background: "#0E0E0D", padding: "48px 0 40px" }}>
         <div className="px-8 lg:px-16">
           <p className="font-body uppercase text-warm-grey mb-5" style={{ fontSize: 10, letterSpacing: "0.3em" }}>PRODUCT SEARCH</p>
-          <form onSubmit={handleSearchSubmit} className="flex items-stretch gap-0" style={{ maxWidth: 680 }}>
+          <form onSubmit={handleSearchSubmit} className="flex items-end gap-0" style={{ maxWidth: 680 }}>
             <input
               type="text"
               value={localQuery}
@@ -2448,22 +2465,20 @@ const SearchPage = ({ navigate, query, products, categories }) => {
               placeholder="Search by product, finish, collection, SKU…"
               className="font-body text-warm-white flex-1"
               style={{
-                fontSize: 18, fontWeight: 300, letterSpacing: "0.05em", lineHeight: 1,
+                fontSize: 18, fontWeight: 300, letterSpacing: "0.04em",
                 background: "transparent", border: "none",
                 borderBottom: "1px solid rgba(245,241,234,0.3)",
-                padding: "14px 0", outline: "none",
-                alignSelf: "stretch",
+                padding: "0 0 14px 0", outline: "none",
               }}
               autoFocus
             />
             <button type="submit"
-              className="font-body uppercase text-warm-white transition-colors duration-200 flex items-center"
+              className="font-body uppercase text-warm-white transition-colors duration-200"
               style={{
-                fontSize: 11, letterSpacing: "0.25em", lineHeight: 1,
-                padding: "14px 24px",
+                fontSize: 11, letterSpacing: "0.25em",
+                padding: "0 24px 14px 24px",
                 borderBottom: "1px solid rgba(245,241,234,0.3)",
                 background: "transparent", flexShrink: 0,
-                alignSelf: "stretch",
               }}
               onMouseEnter={e => e.currentTarget.style.color = "#C7B9A6"}
               onMouseLeave={e => e.currentTarget.style.color = "#F5F1EA"}>
@@ -3792,6 +3807,42 @@ const AdminProductRow = ({ product, navigate, categories, onDelete }) => {
   );
 };
 
+// ── AdminProductForm helpers (module level — prevents focus-loss remounting) ──
+const adminInputStyle = (err) => ({
+  border: `1px solid ${err ? "#DC2626" : "#E2E2E2"}`, padding: "10px 12px",
+  fontSize: 14, color: "#1A1A1A", outline: "none", background: "white", width: "100%"
+});
+
+const adminLabelStyle = {
+  fontSize: 10, letterSpacing: "0.2em", color: "#6B6B6B",
+  display: "block", marginBottom: 4, textTransform: "uppercase",
+  fontFamily: "Inter, sans-serif",
+};
+
+const AdminToggle = ({ label, checked, onChange, helper }) => (
+  <div className="flex items-center justify-between py-3">
+    <div>
+      <p className="font-body" style={{ fontSize: 13, color: "#1A1A1A", fontWeight: 400 }}>{label}</p>
+      {helper && <p className="font-body" style={{ fontSize: 11, color: "#6B6B6B", fontWeight: 300 }}>{helper}</p>}
+    </div>
+    <div onClick={() => onChange(!checked)}
+      className="relative cursor-pointer"
+      style={{ width: 40, height: 22, background: checked ? "#C7B9A6" : "#E2E2E2", transition: "background 200ms" }}>
+      <div style={{ position: "absolute", top: 3, left: checked ? 19 : 3, width: 16, height: 16, background: "white", transition: "left 200ms" }} />
+    </div>
+  </div>
+);
+
+const AdminCardSection = ({ title, children }) => (
+  <div style={{ background: "white", border: "1px solid #E2E2E2", padding: 24, marginBottom: 20 }}>
+    <h3 className="font-body" style={{ fontSize: 14, fontWeight: 500, color: "#1A1A1A", borderBottom: "1px solid #E2E2E2", paddingBottom: 12, marginBottom: 20 }}>{title}</h3>
+    {children}
+  </div>
+);
+
+const mmToIn = v => v ? (parseFloat(v) / 25.4).toFixed(1) : "—";
+const kgToLb = v => v ? (parseFloat(v) * 2.205).toFixed(2) : "—";
+
 // ═══════════════════════════════════════════
 // ADMIN PRODUCT FORM
 // ═══════════════════════════════════════════
@@ -3847,15 +3898,18 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
     return Object.keys(errs).length === 0;
   };
 
-  const handleSave = (publish = false) => {
+  const handleSave = async (publish = false) => {
     if (!validate(publish)) return;
     setSaving(true);
-    setTimeout(() => {
+    try {
       const data = { ...form, published: publish ? true : form.published };
-      onSave(data, isEdit ? params.productId : null);
-      setSaving(false);
+      await onSave(data, isEdit ? params.productId : null);
       navigate("admin-products");
-    }, 500);
+    } catch (err) {
+      console.error("[handleSave] onSave threw:", err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleFileUpload = (field, file, isImage = false) => {
@@ -3874,36 +3928,6 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
     reader.readAsDataURL(file);
   };
 
-  const inputStyle = (err) => ({
-    border: `1px solid ${err ? "#DC2626" : "#E2E2E2"}`, padding: "10px 12px",
-    fontSize: 14, color: "#1A1A1A", outline: "none", background: "white", width: "100%"
-  });
-
-  const labelStyle = { fontSize: 10, letterSpacing: "0.2em", color: "#6B6B6B", display: "block", marginBottom: 4, textTransform: "uppercase", fontFamily: "Inter, sans-serif" };
-
-  const Toggle = ({ label, checked, onChange, helper }) => (
-    <div className="flex items-center justify-between py-3">
-      <div>
-        <p className="font-body" style={{ fontSize: 13, color: "#1A1A1A", fontWeight: 400 }}>{label}</p>
-        {helper && <p className="font-body" style={{ fontSize: 11, color: "#6B6B6B", fontWeight: 300 }}>{helper}</p>}
-      </div>
-      <div onClick={() => onChange(!checked)}
-        className="relative cursor-pointer"
-        style={{ width: 40, height: 22, background: checked ? "#C7B9A6" : "#E2E2E2", transition: "background 200ms" }}>
-        <div style={{ position: "absolute", top: 3, left: checked ? 19 : 3, width: 16, height: 16, background: "white", transition: "left 200ms" }} />
-      </div>
-    </div>
-  );
-
-  const CardSection = ({ title, children }) => (
-    <div style={{ background: "white", border: "1px solid #E2E2E2", padding: 24, marginBottom: 20 }}>
-      <h3 className="font-body" style={{ fontSize: 14, fontWeight: 500, color: "#1A1A1A", borderBottom: "1px solid #E2E2E2", paddingBottom: 12, marginBottom: 20 }}>{title}</h3>
-      {children}
-    </div>
-  );
-
-  const mmToIn = v => v ? (parseFloat(v) / 25.4).toFixed(1) : "—";
-  const kgToLb = v => v ? (parseFloat(v) * 2.205).toFixed(2) : "—";
 
   return (
     <div className="px-8 py-8">
@@ -3932,21 +3956,21 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
       <div className="grid gap-6" style={{ gridTemplateColumns: "1fr 320px" }}>
         {/* Main form */}
         <div>
-          <CardSection title="Basic Information">
+          <AdminCardSection title="Basic Information">
             <div className="mb-4">
-              <label style={labelStyle}>Product Name *</label>
+              <label style={adminLabelStyle}>Product Name *</label>
               <input value={form.name} onChange={e => set("name", e.target.value)}
                 placeholder="e.g. Elara Wall-Mounted Basin Mixer"
-                style={inputStyle(errors.name)}
+                style={adminInputStyle(errors.name)}
                 onFocus={e => e.target.style.borderColor = "#171717"}
                 onBlur={e => e.target.style.borderColor = errors.name ? "#DC2626" : "#E2E2E2"} />
               {errors.name && <p style={{ fontSize: 11, color: "#DC2626", marginTop: 4 }}>{errors.name}</p>}
             </div>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label style={labelStyle}>Product Code</label>
+                <label style={adminLabelStyle}>Product Code</label>
                 <input value={form.id} onChange={e => set("id", e.target.value)}
-                  placeholder="e.g. VH-BF-001" style={inputStyle(false)}
+                  placeholder="e.g. VH-BF-001" style={adminInputStyle(false)}
                   onFocus={e => e.target.style.borderColor = "#171717"}
                   onBlur={e => e.target.style.borderColor = "#E2E2E2"} />
                 {suggestCode() && !form.id && (
@@ -3957,44 +3981,44 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
                 )}
               </div>
               <div>
-                <label style={labelStyle}>SKU</label>
+                <label style={adminLabelStyle}>SKU</label>
                 <input value={form.sku} onChange={e => set("sku", e.target.value)}
-                  placeholder="e.g. VH-BF-001-CHR" style={inputStyle(false)}
+                  placeholder="e.g. VH-BF-001-CHR" style={adminInputStyle(false)}
                   onFocus={e => e.target.style.borderColor = "#171717"}
                   onBlur={e => e.target.style.borderColor = "#E2E2E2"} />
               </div>
             </div>
             <div className="mb-4">
-              <label style={labelStyle}>Short Description</label>
+              <label style={adminLabelStyle}>Short Description</label>
               <textarea value={form.description} onChange={e => set("description", e.target.value)}
                 placeholder="2–3 sentences for product cards..." rows={3}
-                style={{ ...inputStyle(false), resize: "none" }} />
+                style={{ ...adminInputStyle(false), resize: "none" }} />
               <p style={{ fontSize: 11, color: "#6B6B6B", marginTop: 4 }}>{form.description.length}/200</p>
             </div>
             <div>
-              <label style={labelStyle}>Full Description</label>
+              <label style={adminLabelStyle}>Full Description</label>
               <textarea value={form.fullDescription} onChange={e => set("fullDescription", e.target.value)}
                 placeholder="Full specification description..." rows={5}
-                style={{ ...inputStyle(false), resize: "none" }} />
+                style={{ ...adminInputStyle(false), resize: "none" }} />
             </div>
-          </CardSection>
+          </AdminCardSection>
 
-          <CardSection title="Classification">
+          <AdminCardSection title="Classification">
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label style={labelStyle}>Category *</label>
+                <label style={adminLabelStyle}>Category *</label>
                 <select value={form.categoryId}
                   onChange={e => { set("categoryId", e.target.value); set("subcategoryId", ""); }}
-                  style={inputStyle(errors.categoryId)}>
+                  style={adminInputStyle(errors.categoryId)}>
                   <option value="">Select category</option>
                   {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
                 {errors.categoryId && <p style={{ fontSize: 11, color: "#DC2626", marginTop: 4 }}>{errors.categoryId}</p>}
               </div>
               <div>
-                <label style={labelStyle}>Subcategory *</label>
+                <label style={adminLabelStyle}>Subcategory *</label>
                 <select value={form.subcategoryId} onChange={e => set("subcategoryId", e.target.value)}
-                  style={{ ...inputStyle(errors.subcategoryId), opacity: !form.categoryId ? 0.5 : 1 }}
+                  style={{ ...adminInputStyle(errors.subcategoryId), opacity: !form.categoryId ? 0.5 : 1 }}
                   disabled={!form.categoryId}>
                   <option value="">Select subcategory</option>
                   {subcats.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -4002,15 +4026,15 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
                 {errors.subcategoryId && <p style={{ fontSize: 11, color: "#DC2626", marginTop: 4 }}>{errors.subcategoryId}</p>}
               </div>
               <div>
-                <label style={labelStyle}>Collection</label>
-                <select value={form.collectionId} onChange={e => set("collectionId", e.target.value)} style={inputStyle(false)}>
+                <label style={adminLabelStyle}>Collection</label>
+                <select value={form.collectionId} onChange={e => set("collectionId", e.target.value)} style={adminInputStyle(false)}>
                   <option value="">None</option>
                   {collections.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div>
-                <label style={labelStyle}>Stock Status</label>
-                <select value={form.stockStatus} onChange={e => set("stockStatus", e.target.value)} style={inputStyle(false)}>
+                <label style={adminLabelStyle}>Stock Status</label>
+                <select value={form.stockStatus} onChange={e => set("stockStatus", e.target.value)} style={adminInputStyle(false)}>
                   <option value="in-stock">In Stock</option>
                   <option value="out-of-stock">Out of Stock</option>
                   <option value="made-to-order">Made to Order</option>
@@ -4018,16 +4042,16 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
               </div>
             </div>
             <div style={{ borderTop: "1px solid #E2E2E2", paddingTop: 16 }}>
-              <Toggle label="Project Availability" checked={form.projectAvailability}
+              <AdminToggle label="Project Availability" checked={form.projectAvailability}
                 onChange={v => set("projectAvailability", v)} helper="Available for project specification" />
-              <Toggle label="Retail Availability" checked={form.retailAvailability}
+              <AdminToggle label="Retail Availability" checked={form.retailAvailability}
                 onChange={v => set("retailAvailability", v)} helper="Available for retail purchase" />
             </div>
-          </CardSection>
+          </AdminCardSection>
 
-          <CardSection title="Finishes & Materials">
+          <AdminCardSection title="Finishes & Materials">
             <div className="mb-5">
-              <label style={labelStyle}>Available Finishes *</label>
+              <label style={adminLabelStyle}>Available Finishes *</label>
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {finishes.map(f => (
                   <label key={f.id} className="flex items-center gap-3 cursor-pointer py-1">
@@ -4048,30 +4072,30 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label style={labelStyle}>Primary Material</label>
+                <label style={adminLabelStyle}>Primary Material</label>
                 <input value={form.material} onChange={e => set("material", e.target.value)}
-                  placeholder="e.g. Solid brass body" style={inputStyle(false)}
+                  placeholder="e.g. Solid brass body" style={adminInputStyle(false)}
                   onFocus={e => e.target.style.borderColor = "#171717"}
                   onBlur={e => e.target.style.borderColor = "#E2E2E2"} />
               </div>
               <div>
-                <label style={labelStyle}>Additional Materials</label>
+                <label style={adminLabelStyle}>Additional Materials</label>
                 <input value={form.additionalMaterial} onChange={e => set("additionalMaterial", e.target.value)}
-                  placeholder="e.g. Stainless steel hose" style={inputStyle(false)}
+                  placeholder="e.g. Stainless steel hose" style={adminInputStyle(false)}
                   onFocus={e => e.target.style.borderColor = "#171717"}
                   onBlur={e => e.target.style.borderColor = "#E2E2E2"} />
               </div>
             </div>
-          </CardSection>
+          </AdminCardSection>
 
-          <CardSection title="Key Features">
+          <AdminCardSection title="Key Features">
             {form.features.map((feat, i) => (
               <div key={i} className="flex gap-2 mb-2">
                 <input value={feat} onChange={e => {
                   const arr = [...form.features]; arr[i] = e.target.value; set("features", arr);
                 }}
                   placeholder={`Feature ${i + 1}`}
-                  style={{ ...inputStyle(false), flex: 1 }}
+                  style={{ ...adminInputStyle(false), flex: 1 }}
                   onFocus={e => e.target.style.borderColor = "#171717"}
                   onBlur={e => e.target.style.borderColor = "#E2E2E2"} />
                 <button onClick={() => set("features", form.features.filter((_, j) => j !== i))}
@@ -4084,21 +4108,21 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
                 + Add Feature
               </button>
             )}
-          </CardSection>
+          </AdminCardSection>
 
-          <CardSection title="Technical Specifications">
+          <AdminCardSection title="Technical Specifications">
             {form.specifications.map((spec, i) => (
               <div key={i} className="flex gap-2 mb-2">
                 <input value={spec.key} onChange={e => {
                   const arr = [...form.specifications]; arr[i] = { ...arr[i], key: e.target.value }; set("specifications", arr);
                 }} placeholder="e.g. Cartridge Type"
-                  style={{ ...inputStyle(false), width: 200, flexShrink: 0 }}
+                  style={{ ...adminInputStyle(false), width: 200, flexShrink: 0 }}
                   onFocus={e => e.target.style.borderColor = "#171717"}
                   onBlur={e => e.target.style.borderColor = "#E2E2E2"} />
                 <input value={spec.value} onChange={e => {
                   const arr = [...form.specifications]; arr[i] = { ...arr[i], value: e.target.value }; set("specifications", arr);
                 }} placeholder="e.g. Ceramic disc"
-                  style={{ ...inputStyle(false), flex: 1 }}
+                  style={{ ...adminInputStyle(false), flex: 1 }}
                   onFocus={e => e.target.style.borderColor = "#171717"}
                   onBlur={e => e.target.style.borderColor = "#E2E2E2"} />
                 <button onClick={() => set("specifications", form.specifications.filter((_, j) => j !== i))}
@@ -4109,9 +4133,9 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
               className="font-body mt-2" style={{ fontSize: 12, color: "#C7B9A6", fontWeight: 400 }}>
               + Add Specification
             </button>
-          </CardSection>
+          </AdminCardSection>
 
-          <CardSection title="Dimensions">
+          <AdminCardSection title="Dimensions">
             <div className="grid grid-cols-3 gap-4">
               {[
                 { key: "height", label: "Height (mm)" },
@@ -4122,11 +4146,11 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
                 { key: "weight", label: "Weight (kg)" },
               ].map(dim => (
                 <div key={dim.key}>
-                  <label style={labelStyle}>{dim.label}</label>
+                  <label style={adminLabelStyle}>{dim.label}</label>
                   <input type="number" min="0" step={dim.key === "weight" ? "0.1" : "1"}
                     value={form.dimensions[dim.key]}
                     onChange={e => setDim(dim.key, e.target.value)}
-                    style={inputStyle(false)}
+                    style={adminInputStyle(false)}
                     onFocus={e => e.target.style.borderColor = "#171717"}
                     onBlur={e => e.target.style.borderColor = "#E2E2E2"} />
                   <p style={{ fontSize: 11, color: "#6B6B6B", marginTop: 3 }}>
@@ -4137,28 +4161,28 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
                 </div>
               ))}
             </div>
-          </CardSection>
+          </AdminCardSection>
 
-          <CardSection title="Pricing">
+          <AdminCardSection title="Pricing">
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label style={labelStyle}>Trade / Project Price (₹ INR)</label>
+                <label style={adminLabelStyle}>Trade / Project Price (₹ INR)</label>
                 <input type="number" value={form.tradePrice} onChange={e => set("tradePrice", e.target.value)}
-                  placeholder="0" style={inputStyle(false)}
+                  placeholder="0" style={adminInputStyle(false)}
                   onFocus={e => e.target.style.borderColor = "#171717"}
                   onBlur={e => e.target.style.borderColor = "#E2E2E2"} />
                 <p style={{ fontSize: 11, color: "#6B6B6B", marginTop: 4 }}>Internal only. Never displayed publicly.</p>
               </div>
               <div>
-                <label style={labelStyle}>MRP / RRP (₹ INR)</label>
+                <label style={adminLabelStyle}>MRP / RRP (₹ INR)</label>
                 <input type="number" value={form.mrp} onChange={e => set("mrp", e.target.value)}
-                  placeholder="0" style={inputStyle(false)}
+                  placeholder="0" style={adminInputStyle(false)}
                   onFocus={e => e.target.style.borderColor = "#171717"}
                   onBlur={e => e.target.style.borderColor = "#E2E2E2"} />
               </div>
             </div>
             <div className="mb-4">
-              <label style={labelStyle}>Pricing Display Mode</label>
+              <label style={adminLabelStyle}>Pricing Display Mode</label>
               <div className="flex flex-col gap-2 mt-2">
                 {[
                   { value: "on-request", label: "Pricing on request", helper: "Shows: 'Pricing available on request'" },
@@ -4181,19 +4205,19 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
               </div>
             </div>
             <div>
-              <label style={labelStyle}>Pricing Notes (Internal)</label>
+              <label style={adminLabelStyle}>Pricing Notes (Internal)</label>
               <textarea value={form.pricingNote} onChange={e => set("pricingNote", e.target.value)}
                 placeholder="Notes for project team..." rows={3}
-                style={{ ...inputStyle(false), resize: "none" }} />
+                style={{ ...adminInputStyle(false), resize: "none" }} />
             </div>
-          </CardSection>
+          </AdminCardSection>
         </div>
 
         {/* Sidebar */}
         <div>
           {/* Images */}
-          <CardSection title="Product Images">
-            <label style={labelStyle}>Primary Image</label>
+          <AdminCardSection title="Product Images">
+            <label style={adminLabelStyle}>Primary Image</label>
             <div
               style={{ border: "2px dashed #E2E2E2", background: "#F8F8F8", padding: 24, textAlign: "center", cursor: "pointer", marginBottom: 16 }}
               onClick={() => document.getElementById("primary-img-upload").click()}>
@@ -4214,7 +4238,7 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
             <input id="primary-img-upload" type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
               onChange={e => e.target.files[0] && handleFileUpload("images", e.target.files[0], true)} />
 
-            <label style={{ ...labelStyle, marginTop: 16 }}>Additional Images (up to 8)</label>
+            <label style={{ ...adminLabelStyle, marginTop: 16 }}>Additional Images (up to 8)</label>
             <div className="grid grid-cols-4 gap-2 mt-2">
               {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                 <div key={i}
@@ -4236,10 +4260,10 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
                 </div>
               ))}
             </div>
-          </CardSection>
+          </AdminCardSection>
 
           {/* Technical Files */}
-          <CardSection title="Technical Files">
+          <AdminCardSection title="Technical Files">
             {[
               { field: "cadFile", label: "2D CAD Drawing", accept: ".dwg,.dxf,.pdf", types: "DWG, DXF, PDF" },
               { field: "bimFile", label: "3D BIM File", accept: ".rvt,.rfa,.ifc", types: "RVT, RFA, IFC" },
@@ -4248,7 +4272,7 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
               { field: "dimensionDiagram", label: "Dimension Diagram", accept: ".png,.jpg,.svg", types: "PNG, JPG, SVG" },
             ].map(({ field, label, accept, types }) => (
               <div key={field} className="mb-5">
-                <label style={labelStyle}>{label}</label>
+                <label style={adminLabelStyle}>{label}</label>
                 <div
                   style={{ border: "1px dashed #E2E2E2", background: "#F8F8F8", padding: "16px 12px", cursor: "pointer" }}
                   onClick={() => document.getElementById(`file-${field}`).click()}>
@@ -4273,16 +4297,16 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
                   onChange={e => e.target.files[0] && handleFileUpload(field, e.target.files[0])} />
               </div>
             ))}
-          </CardSection>
+          </AdminCardSection>
 
           {/* Visibility */}
-          <CardSection title="Visibility">
-            <Toggle label="Published" checked={form.published} onChange={v => set("published", v)}
+          <AdminCardSection title="Visibility">
+            <AdminToggle label="Published" checked={form.published} onChange={v => set("published", v)}
               helper="Visible on public site" />
-            <Toggle label="Featured" checked={form.featured} onChange={v => set("featured", v)}
+            <AdminToggle label="Featured" checked={form.featured} onChange={v => set("featured", v)}
               helper="Show in homepage featured section" />
             <div className="mt-4">
-              <label style={labelStyle}>Tags</label>
+              <label style={adminLabelStyle}>Tags</label>
               <input value={tagInput}
                 onChange={e => setTagInput(e.target.value)}
                 onKeyDown={e => {
@@ -4292,7 +4316,7 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
                   }
                 }}
                 placeholder="Add tag and press Enter"
-                style={inputStyle(false)}
+                style={adminInputStyle(false)}
                 onFocus={e => e.target.style.borderColor = "#171717"}
                 onBlur={e => e.target.style.borderColor = "#E2E2E2"} />
               {form.tags.length > 0 && (
@@ -4316,24 +4340,24 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
               {showSeo && (
                 <div className="mt-3">
                   <div className="mb-3">
-                    <label style={labelStyle}>Meta Title</label>
+                    <label style={adminLabelStyle}>Meta Title</label>
                     <input value={form.metaTitle} onChange={e => set("metaTitle", e.target.value)}
-                      style={inputStyle(false)}
+                      style={adminInputStyle(false)}
                       onFocus={e => e.target.style.borderColor = "#171717"}
                       onBlur={e => e.target.style.borderColor = "#E2E2E2"} />
                   </div>
                   <div>
-                    <label style={labelStyle}>Meta Description</label>
+                    <label style={adminLabelStyle}>Meta Description</label>
                     <textarea value={form.metaDescription} onChange={e => set("metaDescription", e.target.value)}
-                      rows={3} style={{ ...inputStyle(false), resize: "none" }} />
+                      rows={3} style={{ ...adminInputStyle(false), resize: "none" }} />
                   </div>
                 </div>
               )}
             </div>
-          </CardSection>
+          </AdminCardSection>
 
           {/* Save panel */}
-          <CardSection title="Save Product">
+          <AdminCardSection title="Save Product">
             <button onClick={() => handleSave(false)} disabled={saving}
               className="w-full font-body uppercase mb-3 transition-colors"
               style={{ fontSize: 11, letterSpacing: "0.2em", border: "1px solid #171717", color: "#171717", padding: "12px", background: "transparent" }}>
@@ -4366,7 +4390,7 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
                 )}
               </div>
             )}
-          </CardSection>
+          </AdminCardSection>
         </div>
       </div>
     </div>
@@ -4618,7 +4642,7 @@ const AdminCategories = ({ categories, products, navigate }) => {
 // ADMIN COLLECTIONS
 // ═══════════════════════════════════════════
 
-const AdminCollections = ({ collections, setCollections, products, navigate }) => {
+const AdminCollections = ({ collections, onSave, onDelete: onDeleteCollection, products, navigate }) => {
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [showAdd, setShowAdd] = useState(false);
@@ -4632,20 +4656,20 @@ const AdminCollections = ({ collections, setCollections, products, navigate }) =
   };
 
   const saveEdit = () => {
-    setCollections(prev => prev.map(c => c.id === editingId ? { ...c, ...editForm } : c));
+    onSave({ ...collections.find(c => c.id === editingId), ...editForm });
     setEditingId(null);
   };
 
   const handleAdd = () => {
     if (!newForm.name.trim()) return;
     const id = newForm.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-    setCollections(prev => [...prev, { id, ...newForm }]);
+    onSave({ id, ...newForm });
     setNewForm({ name: "", mood: "", description: "" });
     setShowAdd(false);
   };
 
   const handleDelete = (id) => {
-    setCollections(prev => prev.filter(c => c.id !== id));
+    onDeleteCollection(id);
     setDeleteId(null);
     if (viewId === id) setViewId(null);
   };
@@ -4820,7 +4844,7 @@ const AdminCollections = ({ collections, setCollections, products, navigate }) =
 // ADMIN FINISHES
 // ═══════════════════════════════════════════
 
-const AdminFinishes = ({ finishes, setFinishes, products }) => {
+const AdminFinishes = ({ finishes, onSave: onSaveFinish, onDelete: onDelFinish, products }) => {
   const [newFinish, setNewFinish] = useState({ label: "", hex: "#C8C8C8", description: "", active: true });
   const [editId, setEditId] = useState(null);
   const [editData, setEditData] = useState({});
@@ -4899,14 +4923,14 @@ const AdminFinishes = ({ finishes, setFinishes, products }) => {
                   <td className="py-3 px-4">
                     {isEditing ? (
                       <span className="flex gap-3">
-                        <button onClick={() => { setFinishes(prev => prev.map(fn => fn.id === f.id ? { ...fn, ...editData } : fn)); setEditId(null); }}
+                        <button onClick={() => { onSaveFinish({ ...f, ...editData }); setEditId(null); }}
                           className="font-body" style={{ fontSize: 12, color: "#171717", fontWeight: 500 }}>Save</button>
                         <button onClick={() => setEditId(null)}
                           className="font-body" style={{ fontSize: 12, color: "#6B6B6B" }}>Cancel</button>
                       </span>
                     ) : isDeleting ? (
                       <span className="flex gap-2">
-                        <button onClick={() => { setFinishes(prev => prev.filter(fn => fn.id !== f.id)); setDeleteId(null); }}
+                        <button onClick={() => { onDelFinish(f.id); setDeleteId(null); }}
                           className="font-body" style={{ fontSize: 11, color: "#DC2626", fontWeight: 500 }}>Confirm</button>
                         <span style={{ color: "#E2E2E2" }}>|</span>
                         <button onClick={() => setDeleteId(null)}
@@ -4937,7 +4961,7 @@ const AdminFinishes = ({ finishes, setFinishes, products }) => {
                 <input value={newFinish.label} onChange={e => setNewFinish(p => ({ ...p, label: e.target.value }))}
                   placeholder="Finish name (e.g. Smoked Bronze)"
                   style={{ ...inpSt, width: 160 }}
-                  onKeyDown={e => e.key === "Enter" && newFinish.label.trim() && (() => { const id = newFinish.label.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""); setFinishes(prev => [...prev, { ...newFinish, id }]); setNewFinish({ label: "", hex: "#C8C8C8", description: "", active: true }); })()} />
+                  onKeyDown={e => e.key === "Enter" && newFinish.label.trim() && (() => { const id = newFinish.label.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""); onSaveFinish({ ...newFinish, id }); setNewFinish({ label: "", hex: "#C8C8C8", description: "", active: true }); })()} />
               </td>
               <td className="py-3 px-4 font-body" style={{ fontSize: 11, color: "#6B6B6B" }}>{newFinish.hex}</td>
               <td className="py-3 px-4">
@@ -4952,7 +4976,7 @@ const AdminFinishes = ({ finishes, setFinishes, products }) => {
                 <button onClick={() => {
                     if (!newFinish.label.trim()) return;
                     const id = newFinish.label.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-                    setFinishes(prev => [...prev, { ...newFinish, id }]);
+                    onSaveFinish({ ...newFinish, id });
                     setNewFinish({ label: "", hex: "#C8C8C8", description: "", active: true });
                   }}
                   className="font-body uppercase"
@@ -4976,21 +5000,28 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState("home");
   const [pageParams, setPageParams] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
-  const [products, setProducts] = useState(PRODUCTS_DEFAULT);
-  const [categories] = useState(CATEGORIES_DEFAULT);
-  const [collections, setCollections] = useState(COLLECTIONS);
-  const [finishes, setFinishes] = useState(FINISHES_DEFAULT);
-  const [toast, setToast] = useState(null);
-  const [adminAuthenticated, setAdminAuthenticated] = useState(() =>
-    localStorage.getItem("vorhaus_admin_auth") === "true"
+
+  // ── Data state — seeded from PRODUCTS_DEFAULT on first render,
+  //    then kept in sync with Supabase via effects below ──────
+  const [products,   setProducts]   = useState(PRODUCTS_DEFAULT);
+  const [categories, setCategories] = useState(CATEGORIES_DEFAULT);
+  const [collections,setCollections]= useState(COLLECTIONS);
+  const [finishes,   setFinishes]   = useState(FINISHES_DEFAULT);
+
+  const [loading, setLoading] = useState(true);
+  const [toast,   setToast]   = useState(null);
+
+  // Auth — localStorage only (no server session needed for anon key pattern)
+  const [adminAuthenticated, setAdminAuthenticated] = useState(
+    () => localStorage.getItem("vorhaus_admin_auth") === "true"
   );
   const adminEmail = localStorage.getItem("vorhaus_admin_email") || "";
 
+  // ── Navigation ──────────────────────────────────────────────
   const navigate = useCallback((page, params = {}) => {
     setCurrentPage(page);
     setPageParams(params);
     window.scrollTo(0, 0);
-    // Sync hash so browser back button works for admin
     if (page === "admin" || page.startsWith("admin-")) {
       window.history.pushState({}, "", "#admin");
     } else if (window.location.hash === "#admin") {
@@ -4998,20 +5029,57 @@ export default function App() {
     }
   }, []);
 
-  // On load: if URL has #admin hash, go straight to admin
   useEffect(() => {
-    if (window.location.hash === "#admin") {
-      setCurrentPage("admin");
-    }
+    if (window.location.hash === "#admin") setCurrentPage("admin");
   }, []);
 
+  // ── Toast ───────────────────────────────────────────────────
   const showToast = (message, type = "success") => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
+    setTimeout(() => setToast(null), 3500);
   };
 
-  // CRUD handlers
-  const catMap = { "bath-fittings": "BF", "shower-systems": "SS", "wash-basins": "WB", "luxury-vanities": "LV", "mirrors": "MI", "sanitaryware": "SW", "bathroom-lighting": "BL", "accessories": "AC" };
+  // ── Supabase bootstrap: load data on mount ──────────────────
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        // Seed default collections, finishes, categories if DB is empty
+        await seedDefaults(COLLECTIONS, FINISHES_DEFAULT, CATEGORIES_DEFAULT);
+
+        const [dbProducts, dbCollections, dbFinishes, dbCategories] = await Promise.all([
+          fetchProducts(),
+          fetchCollections(),
+          fetchFinishes(),
+          fetchCategories(),
+        ]);
+
+        if (!alive) return;
+
+        // Only replace state if we got real data back from Supabase
+        if (dbProducts?.length)   setProducts(dbProducts);
+        if (dbCollections?.length) setCollections(dbCollections);
+        if (dbFinishes?.length)    setFinishes(dbFinishes);
+        if (dbCategories?.length)  setCategories(dbCategories.map(c => ({
+          // DB stores subcategories as JSONB — ensure array
+          ...c, subcategories: c.subcategories || [],
+        })));
+      } catch (e) {
+        // Supabase not configured — silently run in local mode
+        console.warn("[EVOKE] Running in local mode (Supabase not configured):", e.message);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  // ── Supabase CRUD handlers ──────────────────────────────────
+  const catMap = {
+    "bath-fittings": "BF", "shower-systems": "SS", "wash-basins": "WB",
+    "luxury-vanities": "LV", "mirrors": "MI", "sanitaryware": "SW",
+    "bathroom-lighting": "BL", "accessories": "AC",
+  };
 
   const generateCode = (categoryId) => {
     const cat = catMap[categoryId] || "XX";
@@ -5019,32 +5087,104 @@ export default function App() {
     return `VH-${cat}-${String(n).padStart(3, "0")}`;
   };
 
-  const handleSaveProduct = (data, productId) => {
-    if (productId) {
-      setProducts(prev => prev.map(p => p.id === productId ? { ...p, ...data } : p));
-      showToast("Product updated successfully");
-    } else {
-      const newId = data.id || generateCode(data.categoryId);
-      setProducts(prev => [...prev, { ...data, id: newId }]);
-      showToast("Product added successfully");
+  const handleSaveProduct = async (data, productId) => {
+    const id = productId || data.id || generateCode(data.categoryId);
+    try {
+      const saved = await saveProduct({ ...data, id }, productId || null);
+      if (saved) {
+        setProducts(prev =>
+          productId
+            ? prev.map(p => p.id === productId ? saved : p)
+            : [...prev, saved]
+        );
+        showToast(productId ? "Product updated" : "Product added");
+      } else {
+        // Supabase failed — fall back to local state update
+        setProducts(prev =>
+          productId
+            ? prev.map(p => p.id === productId ? { ...p, ...data } : p)
+            : [...prev, { ...data, id }]
+        );
+        showToast(productId ? "Product updated (local)" : "Product added (local)");
+      }
+    } catch {
+      setProducts(prev =>
+        productId
+          ? prev.map(p => p.id === productId ? { ...p, ...data } : p)
+          : [...prev, { ...data, id }]
+      );
+      showToast(productId ? "Product updated (local)" : "Product added (local)");
     }
   };
 
-  const handleDeleteProduct = (productId) => {
+  const handleDeleteProduct = async (productId) => {
+    try { await deleteProduct(productId); } catch { /* local fallback */ }
     setProducts(prev =>
       prev.filter(p => p.id !== productId)
-        .map(p => ({ ...p, relatedProducts: p.relatedProducts.filter(id => id !== productId) }))
+          .map(p => ({ ...p, relatedProducts: (p.relatedProducts || []).filter(id => id !== productId) }))
     );
     showToast("Product deleted", "error");
     navigate("admin-products");
   };
 
-  const handleDuplicateProduct = (productId) => {
+  const handleDuplicateProduct = async (productId) => {
     const source = products.find(p => p.id === productId);
     if (!source) return;
-    const copy = { ...source, id: generateCode(source.categoryId), name: source.name + " (Copy)", published: false };
-    setProducts(prev => [...prev, copy]);
+    const newId = generateCode(source.categoryId);
+    const copy = { ...source, id: newId, name: source.name + " (Copy)", published: false };
+    try {
+      const saved = await saveProduct(copy, null);
+      setProducts(prev => [...prev, saved || copy]);
+    } catch {
+      setProducts(prev => [...prev, copy]);
+    }
     showToast("Product duplicated");
+  };
+
+  // Collections CRUD
+  const handleSaveCollection = async (col) => {
+    try {
+      const saved = await saveCollection(col);
+      setCollections(prev =>
+        prev.some(c => c.id === col.id)
+          ? prev.map(c => c.id === col.id ? (saved || col) : c)
+          : [...prev, saved || col]
+      );
+    } catch {
+      setCollections(prev =>
+        prev.some(c => c.id === col.id)
+          ? prev.map(c => c.id === col.id ? col : c)
+          : [...prev, col]
+      );
+    }
+  };
+
+  const handleDeleteCollection = async (id) => {
+    try { await deleteCollection(id); } catch { /* local fallback */ }
+    setCollections(prev => prev.filter(c => c.id !== id));
+  };
+
+  // Finishes CRUD
+  const handleSaveFinish = async (finish) => {
+    try {
+      const saved = await saveFinish(finish);
+      setFinishes(prev =>
+        prev.some(f => f.id === finish.id)
+          ? prev.map(f => f.id === finish.id ? (saved || finish) : f)
+          : [...prev, saved || finish]
+      );
+    } catch {
+      setFinishes(prev =>
+        prev.some(f => f.id === finish.id)
+          ? prev.map(f => f.id === finish.id ? finish : f)
+          : [...prev, finish]
+      );
+    }
+  };
+
+  const handleDeleteFinish = async (id) => {
+    try { await deleteFinish(id); } catch { /* local fallback */ }
+    setFinishes(prev => prev.filter(f => f.id !== id));
   };
 
   const handleLogout = () => {
@@ -5080,10 +5220,10 @@ export default function App() {
           <AdminCategories categories={categories} products={products} navigate={navigate} onDelete={handleDeleteProduct} />
         )}
         {currentPage === "admin-collections" && (
-          <AdminCollections collections={collections} setCollections={setCollections} products={products} navigate={navigate} />
+          <AdminCollections collections={collections} onSave={handleSaveCollection} onDelete={handleDeleteCollection} products={products} navigate={navigate} />
         )}
         {currentPage === "admin-finishes" && (
-          <AdminFinishes finishes={finishes} setFinishes={setFinishes} products={products} />
+          <AdminFinishes finishes={finishes} onSave={handleSaveFinish} onDelete={handleDeleteFinish} products={products} />
         )}
       </AdminLayout>
     );
