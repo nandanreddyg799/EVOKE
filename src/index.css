@@ -2,27 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Base resets ── */
+/* ── Base resets ────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   background: #F5F1EA;
   color: #171717;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 button  { cursor: pointer; background: none; border: none; font-family: inherit; padding: 0; }
-input, textarea, select { font-family: 'Inter', sans-serif; }
+input, textarea, select { font-family: 'DM Sans', system-ui, sans-serif; }
 
-/* ── Scrollbar ── */
+/* ── Scrollbar ──────────────────────────────────────────────── */
 ::-webkit-scrollbar       { width: 5px; }
 ::-webkit-scrollbar-track { background: #F5F1EA; }
 ::-webkit-scrollbar-thumb { background: #D8CEC0; }
 
-/* ── Tailwind custom utilities ── */
+/* ── Tailwind custom utilities ──────────────────────────────── */
 @layer utilities {
-  .top-18  { top: 72px; }
-  .aspect-4\/3  { aspect-ratio: 4 / 3; }
-  .aspect-3\/4  { aspect-ratio: 3 / 4; }
-  .aspect-16\/9 { aspect-ratio: 16 / 9; }
+  .top-18  { top: 80px; }
+  .aspect-4\/3   { aspect-ratio: 4 / 3; }
+  .aspect-3\/4   { aspect-ratio: 3 / 4; }
+  .aspect-16\/9  { aspect-ratio: 16 / 9; }
 }
+
+/*
+ * ── TYPE SCALE REFERENCE ────────────────────────────────────
+ *
+ * Display (Playfair Display):
+ *   font-display  → Playfair Display, serif
+ *   Hero heads    → clamp(42px, 6vw, 80px) — was 36–72px
+ *   Section heads → clamp(30px, 3.5vw, 46px) — was 28–40px
+ *   Subheads      → clamp(22px, 2.5vw, 32px) — was 18–28px
+ *   Product title → 22px on card, 32–52px on PDP
+ *   Collection    → 30px on card
+ *
+ * Body (DM Sans):
+ *   Body copy     → 17px / lh 1.9  — was 15px
+ *   Body small    → 15px / lh 1.8  — was 13px
+ *   Navigation    → 12px / ls 0.2em — was 11px
+ *   Labels/caps   → 11px / ls 0.28em
+ *   Micro/meta    → 10px / ls 0.25em
+ *   Admin UI      → 13–14px (no change — admin stays legible)
+ * ────────────────────────────────────────────────────────────
+ */

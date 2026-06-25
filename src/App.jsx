@@ -14,6 +14,7 @@ import {
 // ── Product images (Vite resolves & hashes these at build time) ──
 import imgVHBF001 from "./assets/VH-BF-001.jpg";
 import imgVHBF002 from "./assets/VH-BF-002.jpg";
+import heroBgVideo from "./assets/hero-bg.mp4";
 import imgVHSS001 from "./assets/VH-SS-001.jpg";
 import imgVHSS002 from "./assets/VH-SS-002.jpg";
 import imgVHWB001 from "./assets/VH-WB-001.jpg";
@@ -773,27 +774,41 @@ const VMark = ({ size = 40, className = "" }) => (
   </div>
 );
 
-const Wordmark = ({ className = "", style = {} }) => (
-  <span
-    className={`font-display tracking-widest2 ${className}`}
-    style={{ fontWeight: 300, letterSpacing: "0.25em", ...style }}
-  >
-    EVOKE
-  </span>
-);
+const Wordmark = ({ className = "", style = {} }) => {
+  // fontSize from parent style; fall back to 22px for nav
+  const fs = style.fontSize || 22;
+  const color = style.color || "currentColor";
+  // SVG size: match cap-height ≈ 72% of font-size
+  // 1.3× font-size makes the circle height visually match Playfair uppercase
+  const monoSize = typeof fs === "number" ? Math.round(fs * 1.3) : 26;
+  return (
+    <span
+      className={`font-display inline-flex items-center ${className}`}
+      style={{ fontWeight: 400, letterSpacing: "0.22em", lineHeight: 1, ...style }}
+    >
+      {/* Circle-E monogram replaces the "E" */}
+      <VMonogram size={monoSize} color={color} style={{ flexShrink: 0, display: "block" }} />
+      {/* VOKE — letter-spacing on the left compensates for the removed "E" gap */}
+      <span style={{ marginLeft: "0.18em", letterSpacing: "0.22em", paddingRight: "0.22em" }}>
+        VOKE
+      </span>
+    </span>
+  );
+};
 
 // Image with E watermark
-const ImageWithWatermark = ({ src, alt = "", aspectClass = "aspect-square", monogramSize = 24, children }) => (
+const ImageWithWatermark = ({ src, alt = "", aspectClass = "aspect-square", monogramSize = 24, objectPosition = "center center", children }) => (
   <div className={`${aspectClass} relative overflow-hidden w-full`}
     style={{ background: "linear-gradient(145deg, #D8CEC0 0%, #C7B9A6 50%, #8F8981 100%)" }}>
     {src && (
       <img src={src} alt={alt}
         className="w-full h-full object-cover"
+        style={{ objectPosition }}
         onError={e => { e.target.style.display = "none"; }}
       />
     )}
     {children}
-    <div className="absolute bottom-3 right-3 z-10 text-warm-white" style={{ opacity: 0.15 }}>
+    <div className="absolute bottom-3 right-3 z-10" style={{ opacity: 0.13 }}>
       <VMonogram size={monogramSize} color="white" />
     </div>
   </div>
@@ -814,7 +829,7 @@ const Toast = ({ toast }) => {
 
 // Breadcrumb
 const Breadcrumb = ({ items, navigate }) => (
-  <div className="flex items-center gap-2 font-body text-warm-grey" style={{ fontSize: 11, letterSpacing: "0.03em" }}>
+  <div className="flex items-center gap-2 font-body text-warm-grey" style={{ fontSize: 12, letterSpacing: "0.03em" }}>
     {items.map((item, i) => (
       <span key={i} className="flex items-center gap-2">
         {i > 0 && <span className="opacity-40">/</span>}
@@ -831,28 +846,31 @@ const Breadcrumb = ({ items, navigate }) => (
 
 // Section Header
 const SectionHeader = ({ eyebrow, heading, subheading, align = "center", dark = false }) => (
-  <div className={`mb-16 ${align === "center" ? "text-center" : ""}`}>
+  <div className={`mb-20 ${align === "center" ? "text-center" : ""}`}>
     {eyebrow && (
       <p className="font-body uppercase mb-4" style={{
-        fontSize: 11, letterSpacing: "0.25em", fontWeight: 400,
+        fontSize: 12, letterSpacing: "0.28em", fontWeight: 400,
         color: dark ? "#8F8981" : "#8F8981"
       }}>{eyebrow}</p>
     )}
     <h2 className="font-display" style={{
-      fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 400,
-      letterSpacing: "0.15em", color: dark ? "#F5F1EA" : "#171717",
+      fontSize: "clamp(32px, 4vw, 52px)", fontWeight: 400,
+      letterSpacing: "0.17em", color: dark ? "#F5F1EA" : "#171717",
       lineHeight: 1.2
     }}>{heading}</h2>
     {subheading && (
       <p className="font-body mt-4 mx-auto" style={{
-        fontSize: 15, fontWeight: 300, letterSpacing: "0.03em",
+        fontSize: 17, fontWeight: 300, letterSpacing: "0.03em",
         color: dark ? "rgba(245,241,234,0.6)" : "#8F8981",
-        maxWidth: 540, lineHeight: 1.8
+        maxWidth: 540, lineHeight: 1.95
       }}>{subheading}</p>
     )}
   </div>
 );
 
+// ═══════════════════════════════════════════
+// INTRO ANIMATION — cinematic wordmark on first load
+// ═══════════════════════════════════════════
 // ═══════════════════════════════════════════
 // NAVBAR
 // ═══════════════════════════════════════════
@@ -896,15 +914,17 @@ const Navbar = ({ navigate, currentPage, categories }) => {
         style={{
           backgroundColor: transparent ? "transparent" : "#F5F1EA",
           borderBottom: transparent ? "none" : "1px solid #D8CEC0",
+          // Adaptive contrast: on transparent, a top-gradient scrim ensures
+          // nav text is always legible regardless of hero image brightness.
+          backgroundImage: transparent
+            ? "linear-gradient(to bottom, rgba(14,14,13,0.55) 0%, rgba(14,14,13,0.0) 100%)"
+            : "none",
         }}
       >
-        <div className="flex items-center justify-between px-8 lg:px-16" style={{ height: 72 }}>
+        <div className="flex items-center justify-between px-8 lg:px-16" style={{ height: 80 }}>
           {/* Left: Wordmark */}
-          <button onClick={() => navigate("home")} className="flex items-center gap-3">
-            <VMonogram size={24} color={transparent ? "white" : "#171717"} />
-            <Wordmark
-              style={{ fontSize: 16, color: transparent ? "#F5F1EA" : "#171717" }}
-            />
+          <button onClick={() => navigate("home")} className="flex items-center">
+            <Wordmark style={{ fontSize: 20, color: transparent ? "#F5F1EA" : "#171717" }} />
           </button>
 
           {/* Center: Nav links (desktop) */}
@@ -918,11 +938,11 @@ const Navbar = ({ navigate, currentPage, categories }) => {
                   <button
                     className="font-body uppercase transition-colors duration-200"
                     style={{
-                      fontSize: 11, letterSpacing: "0.25em", fontWeight: 400,
-                      color: transparent ? "rgba(245,241,234,0.8)" : "#8F8981",
+                      fontSize: 13, letterSpacing: "0.20em", fontWeight: 400,
+                      color: transparent ? "rgba(245,241,234,0.92)" : "#8F8981",
                     }}
                     onMouseEnter={e => e.target.style.color = transparent ? "#F5F1EA" : "#171717"}
-                    onMouseLeave={e => e.target.style.color = transparent ? "rgba(245,241,234,0.8)" : "#8F8981"}
+                    onMouseLeave={e => e.target.style.color = transparent ? "rgba(245,241,234,0.92)" : "#8F8981"}
                   >
                     Products
                   </button>
@@ -933,10 +953,10 @@ const Navbar = ({ navigate, currentPage, categories }) => {
                   onClick={() => navigate(link.page)}
                   className="font-body uppercase transition-colors duration-200 relative"
                   style={{
-                    fontSize: 11, letterSpacing: "0.25em", fontWeight: 400,
+                    fontSize: 12, letterSpacing: "0.28em", fontWeight: 400,
                     color: currentPage === link.page
                       ? (transparent ? "#F5F1EA" : "#171717")
-                      : (transparent ? "rgba(245,241,234,0.8)" : "#8F8981"),
+                      : (transparent ? "rgba(245,241,234,0.92)" : "#8F8981"),
                     borderBottom: currentPage === link.page ? "2px solid #C7B9A6" : "none",
                     paddingBottom: currentPage === link.page ? 2 : 0,
                   }}
@@ -951,7 +971,7 @@ const Navbar = ({ navigate, currentPage, categories }) => {
               onClick={() => navigate("contact")}
               className="hidden lg:block font-body uppercase transition-all duration-300"
               style={{
-                fontSize: 11, letterSpacing: "0.25em", fontWeight: 400,
+                fontSize: 12, letterSpacing: "0.28em", fontWeight: 400,
                 padding: "10px 24px",
                 border: `1px solid ${transparent ? "rgba(245,241,234,0.6)" : "#171717"}`,
                 color: transparent ? "#F5F1EA" : "#171717",
@@ -1005,7 +1025,7 @@ const Navbar = ({ navigate, currentPage, categories }) => {
             <div className="flex px-16 py-12 gap-16">
               {/* Categories grid */}
               <div className="flex-1">
-                <p className="font-body uppercase mb-6" style={{ fontSize: 10, letterSpacing: "0.25em", color: "#8F8981" }}>
+                <p className="font-body uppercase mb-6" style={{ fontSize: 11, letterSpacing: "0.28em", color: "#8F8981" }}>
                   PRODUCT CATEGORIES
                 </p>
                 <div className="grid grid-cols-2 gap-0">
@@ -1018,7 +1038,7 @@ const Navbar = ({ navigate, currentPage, categories }) => {
                       onMouseEnter={e => e.currentTarget.style.background = "#D8CEC0"}
                       onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                     >
-                      <span className="font-body" style={{ fontSize: 13, fontWeight: 400, flex: 1 }}>{cat.name}</span>
+                      <span className="font-body" style={{ fontSize: 15, fontWeight: 400, flex: 1 }}>{cat.name}</span>
                       <span className="text-warm-grey text-sm">→</span>
                     </button>
                   ))}
@@ -1033,9 +1053,9 @@ const Navbar = ({ navigate, currentPage, categories }) => {
                 >
                   <div className="absolute bottom-0 left-0 right-0 p-5"
                     style={{ background: "linear-gradient(to top, rgba(14,14,13,0.75), transparent)" }}>
-                    <p className="font-body text-warm-white uppercase mb-1" style={{ fontSize: 10, letterSpacing: "0.25em" }}>NOW AVAILABLE</p>
-                    <p className="font-display text-warm-white" style={{ fontSize: 20, fontWeight: 400, letterSpacing: "0.1em" }}>Milano Collection</p>
-                    <p className="font-body text-warm-white mt-2" style={{ fontSize: 11, opacity: 0.8 }}>Explore →</p>
+                    <p className="font-body text-warm-white uppercase mb-1" style={{ fontSize: 11, letterSpacing: "0.28em" }}>NOW AVAILABLE</p>
+                    <p className="font-display text-warm-white" style={{ fontSize: 24, fontWeight: 400, letterSpacing: "0.1em" }}>Milano Collection</p>
+                    <p className="font-body text-warm-white mt-2" style={{ fontSize: 12, opacity: 0.8 }}>Explore →</p>
                   </div>
                   <div className="absolute bottom-3 right-3 text-white" style={{ opacity: 0.15 }}>
                     <VMonogram size={24} color="white" />
@@ -1051,7 +1071,7 @@ const Navbar = ({ navigate, currentPage, categories }) => {
       {mobileOpen && (
         <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "#0E0E0D" }}>
           <div className="flex justify-between items-center px-6 py-5">
-            <Wordmark style={{ color: "#F5F1EA", fontSize: 16 }} />
+            <Wordmark style={{ fontSize: 20, color: "#F5F1EA" }} />
             <button onClick={() => setMobileOpen(false)}
               className="text-warm-white text-2xl font-light">✕</button>
           </div>
@@ -1065,13 +1085,13 @@ const Navbar = ({ navigate, currentPage, categories }) => {
                   setMobileOpen(false);
                 }}
                 className="font-display text-warm-white"
-                style={{ fontSize: 28, fontWeight: 400, letterSpacing: "0.15em" }}
+                style={{ fontSize: 34, fontWeight: 400, letterSpacing: "0.17em" }}
               >{link.label}</button>
             ))}
             <button
               onClick={() => { navigate("contact"); setMobileOpen(false); }}
               className="font-body uppercase text-warm-white border border-warm-white mt-4"
-              style={{ fontSize: 11, letterSpacing: "0.25em", padding: "12px 32px" }}
+              style={{ fontSize: 12, letterSpacing: "0.28em", padding: "12px 32px" }}
             >Project Inquiry</button>
           </div>
         </div>
@@ -1094,29 +1114,29 @@ const Footer = ({ navigate, categories }) => (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
         {/* Col 1 */}
         <div>
-          <Wordmark style={{ color: "#F5F1EA", fontSize: 18, display: "block", marginBottom: 12 }} />
+          <Wordmark style={{ color: "#F5F1EA", fontSize: 21, display: "block", marginBottom: 12 }} />
           <div style={{ width: 32, height: 2, background: "#C7B9A6", marginBottom: 20 }} />
-          <p className="font-body text-warm-grey" style={{ fontSize: 13, fontWeight: 300, lineHeight: 1.8, marginBottom: 16 }}>
+          <p className="font-body text-warm-grey" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.95, marginBottom: 16 }}>
             Specification-grade bath solutions for luxury residences, hotels, and landmark developments.
           </p>
-          <p className="font-body text-warm-grey uppercase" style={{ fontSize: 10, letterSpacing: "0.25em" }}>
+          <p className="font-body text-warm-grey uppercase" style={{ fontSize: 11, letterSpacing: "0.28em" }}>
             BATH. SANITARYWARE. ARCHITECTURAL SOLUTIONS.
           </p>
         </div>
         {/* Col 2: Products */}
         <div>
-          <p className="font-body uppercase text-warm-white mb-5" style={{ fontSize: 10, letterSpacing: "0.25em" }}>Products</p>
+          <p className="font-body uppercase text-warm-white mb-5" style={{ fontSize: 11, letterSpacing: "0.28em" }}>Products</p>
           <div className="flex flex-col gap-3">
             {categories.map(cat => (
               <button key={cat.id} onClick={() => navigate("category", { categoryId: cat.id })}
                 className="font-body text-warm-grey text-left transition-colors duration-200 hover:text-warm-white"
-                style={{ fontSize: 13, fontWeight: 300 }}>{cat.name}</button>
+                style={{ fontSize: 15, fontWeight: 300 }}>{cat.name}</button>
             ))}
           </div>
         </div>
         {/* Col 3: Company */}
         <div>
-          <p className="font-body uppercase text-warm-white mb-5" style={{ fontSize: 10, letterSpacing: "0.25em" }}>Company</p>
+          <p className="font-body uppercase text-warm-white mb-5" style={{ fontSize: 11, letterSpacing: "0.28em" }}>Company</p>
           <div className="flex flex-col gap-3">
             {[
               { label: "Projects", page: "projects" },
@@ -1128,22 +1148,22 @@ const Footer = ({ navigate, categories }) => (
             ].map(item => (
               <button key={item.label} onClick={() => navigate(item.page)}
                 className="font-body text-warm-grey text-left transition-colors duration-200 hover:text-warm-white"
-                style={{ fontSize: 13, fontWeight: 300 }}>{item.label}</button>
+                style={{ fontSize: 15, fontWeight: 300 }}>{item.label}</button>
             ))}
           </div>
         </div>
         {/* Col 4: Contact */}
         <div>
-          <p className="font-body uppercase text-warm-white mb-5" style={{ fontSize: 10, letterSpacing: "0.25em" }}>Contact</p>
+          <p className="font-body uppercase text-warm-white mb-5" style={{ fontSize: 11, letterSpacing: "0.28em" }}>Contact</p>
           <div className="flex flex-col gap-3">
             <button onClick={() => navigate("contact")}
               className="font-body text-warm-grey text-left hover:text-warm-white transition-colors"
-              style={{ fontSize: 13, fontWeight: 300 }}>Project Inquiry</button>
+              style={{ fontSize: 15, fontWeight: 300 }}>Project Inquiry</button>
             <button onClick={() => navigate("showrooms")}
               className="font-body text-warm-grey text-left hover:text-warm-white transition-colors"
-              style={{ fontSize: 13, fontWeight: 300 }}>Dealer Inquiry</button>
-            <p className="font-body text-warm-grey" style={{ fontSize: 13, fontWeight: 300 }}>info@evoke.in</p>
-            <p className="font-body text-warm-grey" style={{ fontSize: 13, fontWeight: 300, lineHeight: 1.6 }}>
+              style={{ fontSize: 15, fontWeight: 300 }}>Dealer Inquiry</button>
+            <p className="font-body text-warm-grey" style={{ fontSize: 15, fontWeight: 300 }}>info@evoke.in</p>
+            <p className="font-body text-warm-grey" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.75 }}>
               EVOKE India<br />
               Bengaluru · Mumbai · Delhi
             </p>
@@ -1153,7 +1173,7 @@ const Footer = ({ navigate, categories }) => (
       {/* Bottom bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
         style={{ borderTop: "1px solid rgba(167,163,155,0.2)", paddingTop: 24 }}>
-        <p className="font-body text-warm-grey" style={{ fontSize: 11, fontWeight: 300 }}>
+        <p className="font-body text-warm-grey" style={{ fontSize: 12, fontWeight: 300 }}>
           © 2025 EVOKE. All rights reserved.
           {/* Hidden admin entry — invisible dot */}
           <span onClick={() => navigate("admin")}
@@ -1163,7 +1183,7 @@ const Footer = ({ navigate, categories }) => (
         <div className="flex gap-6">
           {["Privacy Policy", "Terms", "Sitemap"].map(item => (
             <button key={item} className="font-body text-warm-grey hover:text-warm-white transition-colors"
-              style={{ fontSize: 11, fontWeight: 300 }}>{item}</button>
+              style={{ fontSize: 12, fontWeight: 300 }}>{item}</button>
           ))}
         </div>
       </div>
@@ -1208,7 +1228,7 @@ const SearchBar = ({ navigate }) => {
   // Shared vertical rhythm: 20px padding-top, 20px padding-bottom on BOTH
   // input and button. The form has no border — each child owns its own
   // borderBottom at the same distance from baseline → pixel-perfect alignment.
-  const rowPad = { paddingTop: 20, paddingBottom: 20 };
+  const rowPad = { paddingTop: 26, paddingBottom: 26 };
   const BORDER = "1px solid rgba(167,163,155,0.25)";
 
   return (
@@ -1217,14 +1237,14 @@ const SearchBar = ({ navigate }) => {
 
         {/* Search icon */}
         <div className="flex items-center flex-shrink-0"
-          style={{ padding: "0 20px", paddingBottom: 20, paddingTop: 20 }}>
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ opacity: 0.45, display: "block" }}>
+          style={{ padding: "0 24px", paddingBottom: 26, paddingTop: 26 }}>
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" style={{ opacity: 0.45, display: "block" }}>
             <circle cx="6.5" cy="6.5" r="5.5" stroke="#F5F1EA" strokeWidth="1.3" />
             <line x1="10.5" y1="10.5" x2="14.5" y2="14.5" stroke="#F5F1EA" strokeWidth="1.3" strokeLinecap="round" />
           </svg>
         </div>
 
-        {/* Input — borderBottom sits at row bottom edge */}
+        {/* Input */}
         <input
           ref={inputRef}
           type="text"
@@ -1233,23 +1253,23 @@ const SearchBar = ({ navigate }) => {
           placeholder={`Try "${placeholder}"`}
           className="font-body text-warm-white flex-1"
           style={{
-            fontSize: 14, fontWeight: 300, letterSpacing: "0.04em",
+            fontSize: 16, fontWeight: 300, letterSpacing: "0.03em",
             background: "transparent", outline: "none", color: "#F5F1EA",
             border: "none",
             ...rowPad,
           }}
         />
 
-        {/* Hint chips — vertically centred in the row */}
-        <div className="hidden lg:flex items-center gap-2 px-4 flex-shrink-0"
-          style={{ paddingBottom: 20, paddingTop: 20 }}>
+        {/* Hint chips */}
+        <div className="hidden lg:flex items-center gap-2 px-5 flex-shrink-0"
+          style={{ paddingBottom: 26, paddingTop: 26 }}>
           {EXAMPLE_SEARCHES.slice(0, 3).map(ex => (
             <button
               key={ex}
               type="button"
               onClick={() => { setQuery(ex); navigate("search", { query: ex }); }}
               className="font-body transition-all duration-200"
-              style={{ fontSize: 10, letterSpacing: "0.15em", border: "1px solid rgba(167,163,155,0.3)", color: "#8F8981", padding: "4px 12px", background: "transparent", whiteSpace: "nowrap" }}
+              style={{ fontSize: 12, letterSpacing: "0.17em", border: "1px solid rgba(167,163,155,0.3)", color: "#8F8981", padding: "5px 14px", background: "transparent", whiteSpace: "nowrap" }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(245,241,234,0.5)"; e.currentTarget.style.color = "#F5F1EA"; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(167,163,155,0.3)"; e.currentTarget.style.color = "#8F8981"; }}>
               {ex}
@@ -1257,15 +1277,15 @@ const SearchBar = ({ navigate }) => {
           ))}
         </div>
 
-        {/* Submit — same paddingTop/paddingBottom as input → baselines match */}
+        {/* Submit */}
         <button
           type="submit"
           className="font-body uppercase text-warm-white flex-shrink-0 transition-colors duration-200"
           style={{
-            fontSize: 11, letterSpacing: "0.25em",
+            fontSize: 13, letterSpacing: "0.22em",
             background: "transparent",
             borderLeft: BORDER,
-            padding: `${rowPad.paddingTop}px 28px ${rowPad.paddingBottom}px`,
+            padding: `${rowPad.paddingTop}px 36px ${rowPad.paddingBottom}px`,
           }}
           onMouseEnter={e => e.currentTarget.style.background = "rgba(245,241,234,0.06)"}
           onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
@@ -1284,24 +1304,30 @@ const HomePage = ({ navigate, categories, products, collections }) => {
       {/* HERO */}
       <section className="relative flex items-center justify-center"
         style={{ height: "100vh", minHeight: 600, background: "linear-gradient(145deg, #D8CEC0 0%, #8F8981 60%, #171717 100%)" }}>
-        <img src={imgVHSS002} alt="EVOKE Terma Thermostatic Shower Column"
+        <video
+          autoPlay muted loop playsInline
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ objectPosition: "center" }} />
+          style={{ objectPosition: "center" }}
+        >
+          <source src={heroBgVideo} type="video/mp4" />
+        </video>
         <div className="absolute inset-0"
           style={{ background: "linear-gradient(to bottom, rgba(14,14,13,0.45) 0%, rgba(14,14,13,0.75) 100%)" }} />
-        <div className="relative z-10 text-center px-6" style={{ maxWidth: 800 }}>
-          <VMark size={80} className="mx-auto mb-8 text-warm-white" />
-          <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 11, letterSpacing: "0.25em" }}>
+        <div className="relative z-10 text-center px-6" style={{ maxWidth: 800, marginTop: 80 }}>
+          <div className="flex justify-center" style={{ marginBottom: 28 }}>
+            <Wordmark style={{ fontSize: 48, color: "#F5F1EA", letterSpacing: "0.22em" }} />
+          </div>
+          <p className="font-body uppercase text-warm-grey mb-10" style={{ fontSize: 13, letterSpacing: "0.32em" }}>
             ARCHITECTURAL BATH SOLUTIONS
           </p>
           <h1 className="font-display text-warm-white" style={{
-            fontSize: "clamp(36px, 6vw, 72px)", fontWeight: 300,
-            letterSpacing: "0.15em", lineHeight: 1.15
+            fontSize: "clamp(32px, 4.5vw, 58px)", fontWeight: 400,
+            letterSpacing: "0.14em", lineHeight: 1.2
           }}>
             Designed for Architecture.<br />Crafted for Living.
           </h1>
           <p className="font-body text-warm-white mt-8 mx-auto" style={{
-            fontSize: 15, fontWeight: 300, opacity: 0.75, maxWidth: 520, lineHeight: 1.8
+            fontSize: 17, fontWeight: 300, opacity: 0.75, maxWidth: 520, lineHeight: 1.95
           }}>
             Complete bathroom systems for luxury residences, hotels, and landmark developments.
           </p>
@@ -1310,7 +1336,7 @@ const HomePage = ({ navigate, categories, products, collections }) => {
               onClick={() => navigate("projects")}
               className="font-body uppercase transition-all duration-300"
               style={{
-                fontSize: 11, letterSpacing: "0.25em", fontWeight: 400,
+                fontSize: 12, letterSpacing: "0.28em", fontWeight: 400,
                 background: "#F5F1EA", color: "#171717", padding: "14px 36px",
               }}
               onMouseEnter={e => e.currentTarget.style.background = "#D8CEC0"}
@@ -1320,7 +1346,7 @@ const HomePage = ({ navigate, categories, products, collections }) => {
               onClick={() => navigate("category", { categoryId: "bath-fittings" })}
               className="font-body uppercase transition-all duration-300"
               style={{
-                fontSize: 11, letterSpacing: "0.25em", fontWeight: 400,
+                fontSize: 12, letterSpacing: "0.28em", fontWeight: 400,
                 border: "1px solid rgba(245,241,234,0.6)", color: "#F5F1EA",
                 padding: "14px 36px", background: "transparent",
               }}
@@ -1329,11 +1355,7 @@ const HomePage = ({ navigate, categories, products, collections }) => {
             >View Products</button>
           </div>
         </div>
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-3">
-          <div style={{ width: 1, height: 40, background: "rgba(245,241,234,0.4)" }} />
-          <p className="font-body uppercase text-warm-white" style={{ fontSize: 9, letterSpacing: "0.3em", opacity: 0.5 }}>SCROLL</p>
-        </div>
+
       </section>
 
       {/* SEARCH BAR */}
@@ -1344,25 +1366,25 @@ const HomePage = ({ navigate, categories, products, collections }) => {
       </section>
 
       {/* BRAND INTRO */}
-      <section className="bg-warm-white py-28">
+      <section className="bg-warm-white py-36">
         <div className="px-8 lg:px-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
-            <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 11, letterSpacing: "0.25em" }}>
+            <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 12, letterSpacing: "0.28em" }}>
               THE EVOKE STANDARD
             </p>
-            <h2 className="font-display text-charcoal mb-8" style={{ fontSize: "clamp(28px, 3.5vw, 40px)", fontWeight: 400, letterSpacing: "0.12em", lineHeight: 1.2 }}>
+            <h2 className="font-display text-charcoal mb-8" style={{ fontSize: "clamp(32px, 3.5vw, 46px)", fontWeight: 400, letterSpacing: "0.14em", lineHeight: 1.2 }}>
               Where Italian Craftsmanship Meets Architectural Precision
             </h2>
-            <p className="font-body text-warm-grey mb-6" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.9 }}>
+            <p className="font-body text-warm-grey mb-6" style={{ fontSize: 17, fontWeight: 300, lineHeight: 2.0 }}>
               EVOKE was founded on a single principle: that every element of the bathroom environment deserves the same level of specification rigour applied to structural architecture. We serve architects, interior designers, luxury developers, and five-star hospitality groups across India and internationally.
             </p>
-            <p className="font-body text-warm-grey mb-10" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.9 }}>
+            <p className="font-body text-warm-grey mb-10" style={{ fontSize: 17, fontWeight: 300, lineHeight: 2.0 }}>
               Every product in our catalogue is designed as a complete system — faucet to finish, basin to cistern — coordinated across collections to allow seamless specification at any project scale.
             </p>
             <button
               onClick={() => navigate("about")}
               className="font-body uppercase text-charcoal transition-colors duration-200"
-              style={{ fontSize: 11, letterSpacing: "0.25em", fontWeight: 400, textDecoration: "underline", textUnderlineOffset: 4 }}
+              style={{ fontSize: 12, letterSpacing: "0.28em", fontWeight: 400, textDecoration: "underline", textUnderlineOffset: 4 }}
             >Our Approach →</button>
           </div>
           <div className="relative">
@@ -1384,7 +1406,7 @@ const HomePage = ({ navigate, categories, products, collections }) => {
                 <div className="mb-3">
                   <VMonogram size={20} color="#8F8981" />
                 </div>
-                <p className="font-body uppercase text-warm-grey" style={{ fontSize: 10, letterSpacing: "0.2em", lineHeight: 1.5 }}>
+                <p className="font-body uppercase text-warm-grey" style={{ fontSize: 11, letterSpacing: "0.22em", lineHeight: 1.5 }}>
                   {pillar}
                 </p>
               </div>
@@ -1394,11 +1416,11 @@ const HomePage = ({ navigate, categories, products, collections }) => {
       </section>
 
       {/* PRODUCT CATEGORIES */}
-      <section className="bg-warm-white py-24">
+      <section className="bg-warm-white py-28">
         <div className="px-8 lg:px-16">
           <SectionHeader eyebrow="COMPLETE SYSTEMS" heading="Every Element. Specified."
             subheading="From faucet to finish — a complete architectural bath solution." />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px" style={{ background: "#D8CEC0" }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "#D8CEC0" }}>
             {categories.map(cat => (
               <button
                 key={cat.id}
@@ -1410,13 +1432,14 @@ const HomePage = ({ navigate, categories, products, collections }) => {
               >
                 <ImageWithWatermark
                   src={{"bath-fittings":imgVHBF001,"shower-systems":imgVHSS001,"wash-basins":imgVHWB001,"luxury-vanities":imgVHLV001,"mirrors":imgEVMR001,"sanitaryware-accessories":imgEVSW001}[cat.id]}
-                  aspectClass="aspect-square" monogramSize={24}
+                  aspectClass="aspect-4/3" monogramSize={24}
+                  objectPosition={{"mirrors":"center 30%","luxury-vanities":"center 20%","wash-basins":"center 40%"}[cat.id] || "center center"}
                   alt={cat.name} />
-                <div className="px-5 py-6" style={{ background: "#F5F1EA" }}>
-                  <h3 className="font-display text-charcoal" style={{ fontSize: 18, fontWeight: 400, letterSpacing: "0.15em" }}>{cat.name}</h3>
-                  <p className="font-body text-warm-grey mt-1" style={{ fontSize: 12, fontWeight: 300 }}>{cat.descriptor}</p>
+                <div className="px-6 py-7" style={{ background: "#F5F1EA" }}>
+                  <h3 className="font-display text-charcoal" style={{ fontSize: 21, fontWeight: 400, letterSpacing: "0.17em" }}>{cat.name}</h3>
+                  <p className="font-body text-warm-grey mt-1" style={{ fontSize: 13, fontWeight: 300 }}>{cat.descriptor}</p>
                   <p className="font-body text-warm-grey mt-4 transition-transform duration-300 group-hover:translate-x-1"
-                    style={{ fontSize: 11 }}>→</p>
+                    style={{ fontSize: 12 }}>→</p>
                 </div>
               </button>
             ))}
@@ -1455,9 +1478,9 @@ const HomePage = ({ navigate, categories, products, collections }) => {
                 <div className="absolute inset-0"
                   style={{ background: "linear-gradient(to top, rgba(14,14,13,0.75) 0%, transparent 55%)" }} />
                 <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <h3 className="font-display text-warm-white" style={{ fontSize: 20, fontWeight: 400, letterSpacing: "0.1em" }}>{proj.title}</h3>
-                  <p className="font-body text-warm-white mt-2" style={{ fontSize: 12, fontWeight: 300, opacity: 0.75 }}>{proj.descriptor}</p>
-                  <p className="font-body text-warm-white mt-3 uppercase" style={{ fontSize: 10, letterSpacing: "0.2em", opacity: 0.8 }}>View Projects →</p>
+                  <h3 className="font-display text-warm-white" style={{ fontSize: 24, fontWeight: 400, letterSpacing: "0.1em" }}>{proj.title}</h3>
+                  <p className="font-body text-warm-white mt-2" style={{ fontSize: 13, fontWeight: 300, opacity: 0.75 }}>{proj.descriptor}</p>
+                  <p className="font-body text-warm-white mt-3 uppercase" style={{ fontSize: 11, letterSpacing: "0.22em", opacity: 0.8 }}>View Projects →</p>
                 </div>
                 <div className="absolute bottom-3 right-3 text-white" style={{ opacity: 0.15 }}>
                   <VMonogram size={20} color="white" />
@@ -1468,7 +1491,7 @@ const HomePage = ({ navigate, categories, products, collections }) => {
           <div className="text-center mt-12">
             <button onClick={() => navigate("projects")}
               className="font-body uppercase text-charcoal"
-              style={{ fontSize: 11, letterSpacing: "0.25em", textDecoration: "underline", textUnderlineOffset: 4 }}>
+              style={{ fontSize: 12, letterSpacing: "0.28em", textDecoration: "underline", textUnderlineOffset: 4 }}>
               View All Projects →
             </button>
           </div>
@@ -1500,9 +1523,9 @@ const HomePage = ({ navigate, categories, products, collections }) => {
                 </div>
                 <div className="pt-6 pb-2">
                   <div style={{ width: 32, height: 2, background: "#C7B9A6", marginBottom: 16 }} />
-                  <h3 className="font-display text-charcoal" style={{ fontSize: 26, fontWeight: 400, letterSpacing: "0.15em" }}>{col.name}</h3>
-                  <p className="font-body text-warm-grey mt-2" style={{ fontSize: 13, fontWeight: 300 }}>{col.mood}</p>
-                  <p className="font-body text-charcoal uppercase mt-5" style={{ fontSize: 11, letterSpacing: "0.25em", fontWeight: 400 }}>
+                  <h3 className="font-display text-charcoal" style={{ fontSize: 30, fontWeight: 400, letterSpacing: "0.17em" }}>{col.name}</h3>
+                  <p className="font-body text-warm-grey mt-2" style={{ fontSize: 15, fontWeight: 300 }}>{col.mood}</p>
+                  <p className="font-body text-charcoal uppercase mt-5" style={{ fontSize: 12, letterSpacing: "0.28em", fontWeight: 400 }}>
                     Explore Collection →
                   </p>
                 </div>
@@ -1516,27 +1539,27 @@ const HomePage = ({ navigate, categories, products, collections }) => {
       <section className="py-28" style={{ background: "#0E0E0D" }}>
         <div className="px-8 lg:px-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
-            <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 11, letterSpacing: "0.25em" }}>
+            <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 12, letterSpacing: "0.28em" }}>
               FOR THE SPECIFICATION COMMUNITY
             </p>
-            <h2 className="font-display text-warm-white mb-8" style={{ fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 400, letterSpacing: "0.12em", lineHeight: 1.2 }}>
+            <h2 className="font-display text-warm-white mb-8" style={{ fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 400, letterSpacing: "0.14em", lineHeight: 1.2 }}>
               Designed for Architects, Designers and Developers
             </h2>
-            <p className="font-body text-warm-grey mb-10" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.9 }}>
+            <p className="font-body text-warm-grey mb-10" style={{ fontSize: 17, fontWeight: 300, lineHeight: 2.0 }}>
               EVOKE offers dedicated specification support for the professional community — including project-specific pricing, finish coordination across entire builds, BOQ assistance, design consultation, bulk supply agreements, and a dedicated project manager for each engagement.
             </p>
             <div className="flex gap-4 flex-wrap">
               <button
                 onClick={() => navigate("architects")}
                 className="font-body uppercase transition-all duration-300"
-                style={{ fontSize: 11, letterSpacing: "0.25em", fontWeight: 400, background: "#F5F1EA", color: "#171717", padding: "14px 36px" }}
+                style={{ fontSize: 12, letterSpacing: "0.28em", fontWeight: 400, background: "#F5F1EA", color: "#171717", padding: "14px 36px" }}
                 onMouseEnter={e => e.currentTarget.style.background = "#D8CEC0"}
                 onMouseLeave={e => e.currentTarget.style.background = "#F5F1EA"}
               >Request Specification Pack</button>
               <button
                 onClick={() => navigate("contact")}
                 className="font-body uppercase transition-all duration-300"
-                style={{ fontSize: 11, letterSpacing: "0.25em", fontWeight: 400, border: "1px solid rgba(245,241,234,0.5)", color: "#F5F1EA", padding: "14px 36px", background: "transparent" }}
+                style={{ fontSize: 12, letterSpacing: "0.28em", fontWeight: 400, border: "1px solid rgba(245,241,234,0.5)", color: "#F5F1EA", padding: "14px 36px", background: "transparent" }}
                 onMouseEnter={e => e.currentTarget.style.background = "rgba(245,241,234,0.1)"}
                 onMouseLeave={e => e.currentTarget.style.background = "transparent"}
               >Book a Consultation</button>
@@ -1552,10 +1575,10 @@ const HomePage = ({ navigate, categories, products, collections }) => {
       <section className="bg-warm-white py-16" style={{ borderTop: "1px solid #D8CEC0" }}>
         <div className="px-8 lg:px-16 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
           <div>
-            <h2 className="font-display text-charcoal" style={{ fontSize: "clamp(24px, 3vw, 34px)", fontWeight: 400, letterSpacing: "0.12em" }}>
+            <h2 className="font-display text-charcoal" style={{ fontSize: "clamp(28px, 3vw, 40px)", fontWeight: 400, letterSpacing: "0.14em" }}>
               Visit an EVOKE Showroom
             </h2>
-            <p className="font-body text-warm-grey mt-3" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.8 }}>
+            <p className="font-body text-warm-grey mt-3" style={{ fontSize: 17, fontWeight: 300, lineHeight: 1.95 }}>
               Experience our complete collection at authorised showrooms and dealer partners.
             </p>
           </div>
@@ -1563,14 +1586,14 @@ const HomePage = ({ navigate, categories, products, collections }) => {
             <button
               onClick={() => navigate("showrooms")}
               className="font-body uppercase transition-all duration-300"
-              style={{ fontSize: 11, letterSpacing: "0.25em", fontWeight: 400, border: "1px solid #171717", color: "#171717", padding: "12px 28px", background: "transparent" }}
+              style={{ fontSize: 12, letterSpacing: "0.28em", fontWeight: 400, border: "1px solid #171717", color: "#171717", padding: "12px 28px", background: "transparent" }}
               onMouseEnter={e => { e.currentTarget.style.background = "#171717"; e.currentTarget.style.color = "#F5F1EA"; }}
               onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#171717"; }}
             >Find a Showroom →</button>
             <button
               onClick={() => navigate("contact")}
               className="font-body text-charcoal"
-              style={{ fontSize: 11, letterSpacing: "0.25em", textDecoration: "underline", textUnderlineOffset: 4 }}>
+              style={{ fontSize: 12, letterSpacing: "0.28em", textDecoration: "underline", textUnderlineOffset: 4 }}>
               Become a Dealer
             </button>
           </div>
@@ -1587,7 +1610,7 @@ const HomePage = ({ navigate, categories, products, collections }) => {
 const CategoryPage = ({ navigate, params, categories }) => {
   const category = categories.find(c => c.id === params.categoryId) || categories[0];
   return (
-    <div style={{ paddingTop: 72 }}>
+    <div style={{ paddingTop: 80 }}>
       {/* Hero */}
       <div className="relative flex flex-col items-center justify-center"
         style={{ height: "40vh", minHeight: 300, background: "linear-gradient(145deg, #D8CEC0, #8F8981)" }}>
@@ -1599,7 +1622,7 @@ const CategoryPage = ({ navigate, params, categories }) => {
           ]} />
         </div>
         <div className="relative z-10 text-center">
-          <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 300, letterSpacing: "0.15em" }}>
+          <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(38px, 5vw, 64px)", fontWeight: 300, letterSpacing: "0.17em" }}>
             {category.name}
           </h1>
           <div style={{ width: 40, height: 2, background: "#C7B9A6", margin: "16px auto 0" }} />
@@ -1632,9 +1655,9 @@ const CategoryPage = ({ navigate, params, categories }) => {
                   aspectClass="aspect-video" monogramSize={20}
                   alt={sub.name} />
                 <div className="px-6 py-7" style={{ borderTop: "1px solid #D8CEC0" }}>
-                  <h3 className="font-display text-charcoal" style={{ fontSize: 22, fontWeight: 400, letterSpacing: "0.15em" }}>{sub.name}</h3>
-                  <p className="font-body text-warm-grey mt-1" style={{ fontSize: 13, fontWeight: 300 }}>{sub.descriptor}</p>
-                  <p className="font-body text-charcoal uppercase mt-5" style={{ fontSize: 11, letterSpacing: "0.25em" }}>View Products →</p>
+                  <h3 className="font-display text-charcoal" style={{ fontSize: 26, fontWeight: 400, letterSpacing: "0.17em" }}>{sub.name}</h3>
+                  <p className="font-body text-warm-grey mt-1" style={{ fontSize: 15, fontWeight: 300 }}>{sub.descriptor}</p>
+                  <p className="font-body text-charcoal uppercase mt-5" style={{ fontSize: 12, letterSpacing: "0.28em" }}>View Products →</p>
                 </div>
               </button>
             ))}
@@ -1693,10 +1716,10 @@ const ProductListingPage = ({ navigate, params, products, categories, finishes }
 
   const FilterContent = () => (
     <div>
-      <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 10, letterSpacing: "0.25em" }}>REFINE</p>
+      <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 11, letterSpacing: "0.28em" }}>REFINE</p>
       {/* Finish filters */}
       <div style={{ borderTop: "1px solid #D8CEC0", paddingTop: 20, marginTop: 20 }}>
-        <p className="font-body text-charcoal uppercase mb-4" style={{ fontSize: 11, letterSpacing: "0.2em" }}>Finish</p>
+        <p className="font-body text-charcoal uppercase mb-4" style={{ fontSize: 12, letterSpacing: "0.22em" }}>Finish</p>
         {finishes.map(f => (
           <label key={f.id} className="flex items-center gap-3 mb-3 cursor-pointer">
             <div
@@ -1707,18 +1730,18 @@ const ProductListingPage = ({ navigate, params, products, categories, finishes }
                 background: activeFilters.finishes.includes(f.id) ? "#171717" : "transparent",
                 flexShrink: 0
               }}>
-              {activeFilters.finishes.includes(f.id) && <span style={{ color: "white", fontSize: 10 }}>✓</span>}
+              {activeFilters.finishes.includes(f.id) && <span style={{ color: "white", fontSize: 11 }}>✓</span>}
             </div>
             <div className="flex items-center gap-2 flex-1" onClick={() => toggleFilter("finishes", f.id)}>
               <div style={{ width: 12, height: 12, borderRadius: "50%", background: f.hex, border: "1px solid #D8CEC0" }} />
-              <span className="font-body text-charcoal" style={{ fontSize: 13, fontWeight: 300 }}>{f.label}</span>
+              <span className="font-body text-charcoal" style={{ fontSize: 15, fontWeight: 300 }}>{f.label}</span>
             </div>
           </label>
         ))}
       </div>
       {/* Collection filters */}
       <div style={{ borderTop: "1px solid #D8CEC0", paddingTop: 20, marginTop: 20 }}>
-        <p className="font-body text-charcoal uppercase mb-4" style={{ fontSize: 11, letterSpacing: "0.2em" }}>Collection</p>
+        <p className="font-body text-charcoal uppercase mb-4" style={{ fontSize: 12, letterSpacing: "0.22em" }}>Collection</p>
         {["milano", "como", "verona"].map(c => (
           <label key={c} className="flex items-center gap-3 mb-3 cursor-pointer">
             <div
@@ -1729,9 +1752,9 @@ const ProductListingPage = ({ navigate, params, products, categories, finishes }
                 background: activeFilters.collections.includes(c) ? "#171717" : "transparent",
                 flexShrink: 0
               }}>
-              {activeFilters.collections.includes(c) && <span style={{ color: "white", fontSize: 10 }}>✓</span>}
+              {activeFilters.collections.includes(c) && <span style={{ color: "white", fontSize: 11 }}>✓</span>}
             </div>
-            <span className="font-body text-charcoal capitalize" style={{ fontSize: 13, fontWeight: 300 }}
+            <span className="font-body text-charcoal capitalize" style={{ fontSize: 15, fontWeight: 300 }}
               onClick={() => toggleFilter("collections", c)}>{c.charAt(0).toUpperCase() + c.slice(1)}</span>
           </label>
         ))}
@@ -1740,7 +1763,7 @@ const ProductListingPage = ({ navigate, params, products, categories, finishes }
   );
 
   return (
-    <div style={{ paddingTop: 72 }}>
+    <div style={{ paddingTop: 80 }}>
       <div className="flex">
         {/* Sidebar - desktop */}
         <aside className="hidden lg:block sticky top-18 self-start" style={{ width: 240, minWidth: 240, padding: "32px 24px", borderRight: "1px solid #D8CEC0", height: "calc(100vh - 72px)", overflowY: "auto" }}>
@@ -1757,19 +1780,19 @@ const ProductListingPage = ({ navigate, params, products, categories, finishes }
           ]} />
 
           <div className="flex items-center justify-between mt-6 mb-8">
-            <h1 className="font-display text-charcoal" style={{ fontSize: 28, fontWeight: 400, letterSpacing: "0.12em" }}>
+            <h1 className="font-display text-charcoal" style={{ fontSize: 34, fontWeight: 400, letterSpacing: "0.14em" }}>
               {subcategory?.name || category?.name}
             </h1>
             <div className="flex items-center gap-3 flex-wrap">
-              <span className="font-body text-warm-grey" style={{ fontSize: 12 }}>{filtered.length} product{filtered.length !== 1 ? "s" : ""}</span>
+              <span className="font-body text-warm-grey" style={{ fontSize: 13 }}>{filtered.length} product{filtered.length !== 1 ? "s" : ""}</span>
               <select value={sortBy} onChange={e => setSortBy(e.target.value)}
                 className="font-body text-charcoal"
-                style={{ fontSize: 11, letterSpacing: "0.12em", border: "1px solid #D8CEC0", background: "#F5F1EA", padding: "5px 26px 5px 10px", cursor: "pointer", backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238F8981'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center", appearance: "none" }}>
+                style={{ fontSize: 12, letterSpacing: "0.14em", border: "1px solid #D8CEC0", background: "#F5F1EA", padding: "5px 26px 5px 10px", cursor: "pointer", backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238F8981'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center", appearance: "none" }}>
                 {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
               <button onClick={() => setFilterOpen(!filterOpen)}
                 className="lg:hidden font-body text-charcoal uppercase border border-charcoal px-4 py-2"
-                style={{ fontSize: 11, letterSpacing: "0.2em" }}>Filter +</button>
+                style={{ fontSize: 12, letterSpacing: "0.22em" }}>Filter +</button>
             </div>
           </div>
 
@@ -1797,10 +1820,10 @@ const ProductListingPage = ({ navigate, params, products, categories, finishes }
                   <div style={{ border: "1px solid #D8CEC0" }}>
                     <ImageWithWatermark src={product.images[0]} aspectClass="aspect-square" monogramSize={20} alt={product.name} />
                     <div className="p-5" style={{ background: "#F5F1EA" }}>
-                      <p className="font-body text-warm-grey uppercase" style={{ fontSize: 10, letterSpacing: "0.25em" }}>{product.id}</p>
-                      <h3 className="font-display text-charcoal mt-1" style={{ fontSize: 18, fontWeight: 400, letterSpacing: "0.12em" }}>{product.name}</h3>
+                      <p className="font-body text-warm-grey uppercase" style={{ fontSize: 11, letterSpacing: "0.28em" }}>{product.id}</p>
+                      <h3 className="font-display text-charcoal mt-1" style={{ fontSize: 21, fontWeight: 400, letterSpacing: "0.14em" }}>{product.name}</h3>
                       <div className="flex items-center gap-2 mt-3">
-                        <span className="font-body uppercase" style={{ fontSize: 10, letterSpacing: "0.2em", background: "#C7B9A6", color: "#171717", padding: "2px 8px" }}>
+                        <span className="font-body uppercase" style={{ fontSize: 11, letterSpacing: "0.22em", background: "#C7B9A6", color: "#171717", padding: "2px 8px" }}>
                           {product.collectionId}
                         </span>
                       </div>
@@ -1812,8 +1835,8 @@ const ProductListingPage = ({ navigate, params, products, categories, finishes }
                           ) : null;
                         })}
                       </div>
-                      <p className="font-body text-warm-grey mt-3" style={{ fontSize: 12, fontWeight: 300 }}>Pricing on request</p>
-                      <p className="font-body text-charcoal uppercase mt-3" style={{ fontSize: 11, letterSpacing: "0.2em" }}>View Specifications →</p>
+                      <p className="font-body text-warm-grey mt-3" style={{ fontSize: 13, fontWeight: 300 }}>Pricing on request</p>
+                      <p className="font-body text-charcoal uppercase mt-3" style={{ fontSize: 12, letterSpacing: "0.22em" }}>View Specifications →</p>
                     </div>
                   </div>
                 </button>
@@ -1857,7 +1880,7 @@ const ProductDetailPage = ({ navigate, params, products, categories, finishes })
   const tabs = ["overview", "dimensions", "downloads"];
 
   return (
-    <div style={{ paddingTop: 72 }}>
+    <div style={{ paddingTop: 80 }}>
       <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
         {/* Left: Image Panel */}
         <div className="lg:sticky lg:top-18 lg:h-screen flex flex-col" style={{ background: "#F5F1EA" }}>
@@ -1880,7 +1903,7 @@ const ProductDetailPage = ({ navigate, params, products, categories, finishes })
             {/* Finish label */}
             {activeFinish && (
               <div className="absolute top-4 left-4 font-body uppercase"
-                style={{ fontSize: 10, letterSpacing: "0.25em", background: "#F5F1EA", color: "#171717", padding: "4px 12px", border: "1px solid #D8CEC0" }}>
+                style={{ fontSize: 11, letterSpacing: "0.28em", background: "#F5F1EA", color: "#171717", padding: "4px 12px", border: "1px solid #D8CEC0" }}>
                 {activeFinish.label}
               </div>
             )}
@@ -1928,7 +1951,7 @@ const ProductDetailPage = ({ navigate, params, products, categories, finishes })
 
           {/* Finish selector */}
           <div className="p-6" style={{ borderTop: "1px solid #D8CEC0" }}>
-            <p className="font-body uppercase text-warm-grey mb-3" style={{ fontSize: 10, letterSpacing: "0.25em" }}>SELECT FINISH</p>
+            <p className="font-body uppercase text-warm-grey mb-3" style={{ fontSize: 11, letterSpacing: "0.28em" }}>SELECT FINISH</p>
             <div className="flex gap-4">
               {product.finishes.map(fId => {
                 const f = finishes.find(fn => fn.id === fId);
@@ -1940,7 +1963,7 @@ const ProductDetailPage = ({ navigate, params, products, categories, finishes })
                       width: 28, height: 28, borderRadius: "50%", background: f.hex,
                       border: `2px solid ${selectedFinish === fId ? "#171717" : "#D8CEC0"}`
                     }} />
-                    <span className="font-body text-warm-grey" style={{ fontSize: 10 }}>{f.label}</span>
+                    <span className="font-body text-warm-grey" style={{ fontSize: 11 }}>{f.label}</span>
                   </button>
                 );
               })}
@@ -1957,26 +1980,26 @@ const ProductDetailPage = ({ navigate, params, products, categories, finishes })
             { label: product.name }
           ]} />
 
-          <p className="font-body text-warm-grey uppercase mt-6" style={{ fontSize: 10, letterSpacing: "0.25em" }}>{product.id}</p>
-          <h1 className="font-display text-charcoal mt-2" style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 300, letterSpacing: "0.15em", lineHeight: 1.15 }}>
+          <p className="font-body text-warm-grey uppercase mt-6" style={{ fontSize: 11, letterSpacing: "0.28em" }}>{product.id}</p>
+          <h1 className="font-display text-charcoal mt-2" style={{ fontSize: "clamp(32px, 4vw, 52px)", fontWeight: 300, letterSpacing: "0.17em", lineHeight: 1.15 }}>
             {product.name}
           </h1>
           <div className="mt-4">
-            <span className="font-body uppercase" style={{ fontSize: 10, letterSpacing: "0.2em", background: "#C7B9A6", color: "#171717", padding: "3px 10px" }}>
+            <span className="font-body uppercase" style={{ fontSize: 11, letterSpacing: "0.22em", background: "#C7B9A6", color: "#171717", padding: "3px 10px" }}>
               {product.collectionId?.charAt(0).toUpperCase() + product.collectionId?.slice(1)} Collection
             </span>
           </div>
           <div style={{ width: 40, height: 2, background: "#C7B9A6", marginTop: 24, marginBottom: 24 }} />
 
-          <p className="font-body text-warm-grey" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.9 }}>{product.description}</p>
+          <p className="font-body text-warm-grey" style={{ fontSize: 17, fontWeight: 300, lineHeight: 2.0 }}>{product.description}</p>
 
           <div className="mt-6">
-            <p className="font-body text-warm-grey" style={{ fontSize: 13, fontWeight: 300 }}>
+            <p className="font-body text-warm-grey" style={{ fontSize: 15, fontWeight: 300 }}>
               {product.pricingMode === "show-mrp"
                 ? `₹${product.mrp?.toLocaleString("en-IN")}`
                 : "Pricing available on request"}
             </p>
-            <p className="font-body text-warm-grey mt-1" style={{ fontSize: 11, fontWeight: 300, opacity: 0.7 }}>
+            <p className="font-body text-warm-grey mt-1" style={{ fontSize: 12, fontWeight: 300, opacity: 0.7 }}>
               Contact our project team for specification pricing and availability.
             </p>
           </div>
@@ -1985,14 +2008,14 @@ const ProductDetailPage = ({ navigate, params, products, categories, finishes })
             <button
               onClick={() => navigate("contact")}
               className="font-body uppercase transition-all duration-300"
-              style={{ fontSize: 11, letterSpacing: "0.25em", fontWeight: 400, background: "#171717", color: "#F5F1EA", padding: "14px 28px" }}
+              style={{ fontSize: 12, letterSpacing: "0.28em", fontWeight: 400, background: "#171717", color: "#F5F1EA", padding: "14px 28px" }}
               onMouseEnter={e => e.currentTarget.style.background = "#0E0E0D"}
               onMouseLeave={e => e.currentTarget.style.background = "#171717"}
             >Request a Quote</button>
             <button
               onClick={() => navigate("contact")}
               className="font-body uppercase transition-all duration-300"
-              style={{ fontSize: 11, letterSpacing: "0.25em", fontWeight: 400, border: "1px solid #171717", color: "#171717", padding: "14px 28px", background: "transparent" }}
+              style={{ fontSize: 12, letterSpacing: "0.28em", fontWeight: 400, border: "1px solid #171717", color: "#171717", padding: "14px 28px", background: "transparent" }}
               onMouseEnter={e => { e.currentTarget.style.background = "#171717"; e.currentTarget.style.color = "#F5F1EA"; }}
               onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#171717"; }}
             >Request Spec Sheet</button>
@@ -2008,7 +2031,7 @@ const ProductDetailPage = ({ navigate, params, products, categories, finishes })
                 onClick={() => setActiveTab(tab)}
                 className="font-body uppercase mr-8 pb-3 transition-colors duration-200"
                 style={{
-                  fontSize: 11, letterSpacing: "0.25em", fontWeight: 400,
+                  fontSize: 12, letterSpacing: "0.28em", fontWeight: 400,
                   color: activeTab === tab ? "#171717" : "#8F8981",
                   borderBottom: activeTab === tab ? "2px solid #C7B9A6" : "2px solid transparent",
                   marginBottom: -1
@@ -2021,26 +2044,26 @@ const ProductDetailPage = ({ navigate, params, products, categories, finishes })
           <div className="mt-8">
             {activeTab === "overview" && (
               <div>
-                <h3 className="font-display text-charcoal mb-6" style={{ fontSize: 18, fontWeight: 400, letterSpacing: "0.12em" }}>Key Specifications</h3>
+                <h3 className="font-display text-charcoal mb-6" style={{ fontSize: 21, fontWeight: 400, letterSpacing: "0.14em" }}>Key Specifications</h3>
                 {product.specifications.map((spec, i) => (
                   <div key={i} className="flex justify-between py-3" style={{ borderBottom: "1px solid #D8CEC0" }}>
-                    <span className="font-body text-warm-grey" style={{ fontSize: 13, fontWeight: 300 }}>{spec.key}</span>
-                    <span className="font-body text-charcoal" style={{ fontSize: 13, fontWeight: 400 }}>{spec.value}</span>
+                    <span className="font-body text-warm-grey" style={{ fontSize: 15, fontWeight: 300 }}>{spec.key}</span>
+                    <span className="font-body text-charcoal" style={{ fontSize: 15, fontWeight: 400 }}>{spec.value}</span>
                   </div>
                 ))}
-                <h3 className="font-display text-charcoal mt-8 mb-4" style={{ fontSize: 18, fontWeight: 400, letterSpacing: "0.12em" }}>Features</h3>
+                <h3 className="font-display text-charcoal mt-8 mb-4" style={{ fontSize: 21, fontWeight: 400, letterSpacing: "0.14em" }}>Features</h3>
                 {product.features.map((f, i) => (
                   <div key={i} className="flex items-start gap-3 py-3" style={{ borderBottom: "1px solid #D8CEC0" }}>
-                    <span className="text-sand mt-0.5" style={{ fontSize: 12 }}>—</span>
-                    <span className="font-body text-warm-grey" style={{ fontSize: 13, fontWeight: 300 }}>{f}</span>
+                    <span className="text-sand mt-0.5" style={{ fontSize: 13 }}>—</span>
+                    <span className="font-body text-warm-grey" style={{ fontSize: 15, fontWeight: 300 }}>{f}</span>
                   </div>
                 ))}
                 <div className="mt-6">
-                  <p className="font-body text-warm-grey" style={{ fontSize: 13, fontWeight: 300 }}>
+                  <p className="font-body text-warm-grey" style={{ fontSize: 15, fontWeight: 300 }}>
                     <strong className="text-charcoal font-normal">Material:</strong> {product.material}
                   </p>
                   {product.additionalMaterial && (
-                    <p className="font-body text-warm-grey mt-2" style={{ fontSize: 13, fontWeight: 300 }}>
+                    <p className="font-body text-warm-grey mt-2" style={{ fontSize: 15, fontWeight: 300 }}>
                       <strong className="text-charcoal font-normal">Additional:</strong> {product.additionalMaterial}
                     </p>
                   )}
@@ -2053,9 +2076,9 @@ const ProductDetailPage = ({ navigate, params, products, categories, finishes })
                 <table className="w-full" style={{ borderTop: "1px solid #D8CEC0" }}>
                   <thead>
                     <tr style={{ background: "#F5F1EA" }}>
-                      <th className="font-body text-warm-grey text-left py-3 px-4 uppercase" style={{ fontSize: 10, letterSpacing: "0.2em", fontWeight: 400 }}>Dimension</th>
-                      <th className="font-body text-warm-grey text-right py-3 px-4 uppercase" style={{ fontSize: 10, letterSpacing: "0.2em", fontWeight: 400 }}>mm</th>
-                      <th className="font-body text-warm-grey text-right py-3 px-4 uppercase" style={{ fontSize: 10, letterSpacing: "0.2em", fontWeight: 400 }}>inches</th>
+                      <th className="font-body text-warm-grey text-left py-3 px-4 uppercase" style={{ fontSize: 11, letterSpacing: "0.22em", fontWeight: 400 }}>Dimension</th>
+                      <th className="font-body text-warm-grey text-right py-3 px-4 uppercase" style={{ fontSize: 11, letterSpacing: "0.22em", fontWeight: 400 }}>mm</th>
+                      <th className="font-body text-warm-grey text-right py-3 px-4 uppercase" style={{ fontSize: 11, letterSpacing: "0.22em", fontWeight: 400 }}>inches</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2067,21 +2090,21 @@ const ProductDetailPage = ({ navigate, params, products, categories, finishes })
                       { label: "Spout Height", key: "spoutHeight" },
                     ].map((row, i) => product.dimensions[row.key] ? (
                       <tr key={i} style={{ borderBottom: "1px solid #D8CEC0", background: i % 2 === 0 ? "#F5F1EA" : "white" }}>
-                        <td className="font-body text-warm-grey py-3 px-4" style={{ fontSize: 13, fontWeight: 300 }}>{row.label}</td>
-                        <td className="font-body text-charcoal text-right py-3 px-4" style={{ fontSize: 13 }}>{product.dimensions[row.key]}</td>
-                        <td className="font-body text-charcoal text-right py-3 px-4" style={{ fontSize: 13 }}>{mmToIn(product.dimensions[row.key])}"</td>
+                        <td className="font-body text-warm-grey py-3 px-4" style={{ fontSize: 15, fontWeight: 300 }}>{row.label}</td>
+                        <td className="font-body text-charcoal text-right py-3 px-4" style={{ fontSize: 15 }}>{product.dimensions[row.key]}</td>
+                        <td className="font-body text-charcoal text-right py-3 px-4" style={{ fontSize: 15 }}>{mmToIn(product.dimensions[row.key])}"</td>
                       </tr>
                     ) : null)}
                     <tr style={{ borderBottom: "1px solid #D8CEC0", background: "white" }}>
-                      <td className="font-body text-warm-grey py-3 px-4" style={{ fontSize: 13, fontWeight: 300 }}>Weight</td>
-                      <td className="font-body text-charcoal text-right py-3 px-4" style={{ fontSize: 13 }}>{product.dimensions.weight}kg</td>
-                      <td className="font-body text-charcoal text-right py-3 px-4" style={{ fontSize: 13 }}>{kgToLb(product.dimensions.weight)}lb</td>
+                      <td className="font-body text-warm-grey py-3 px-4" style={{ fontSize: 15, fontWeight: 300 }}>Weight</td>
+                      <td className="font-body text-charcoal text-right py-3 px-4" style={{ fontSize: 15 }}>{product.dimensions.weight}kg</td>
+                      <td className="font-body text-charcoal text-right py-3 px-4" style={{ fontSize: 15 }}>{kgToLb(product.dimensions.weight)}lb</td>
                     </tr>
                   </tbody>
                 </table>
                 <div className="mt-8 flex items-center justify-center"
                   style={{ aspectRatio: "16/9", background: "linear-gradient(145deg, #D8CEC0, #C7B9A6)", position: "relative" }}>
-                  <p className="font-body text-warm-grey uppercase" style={{ fontSize: 10, letterSpacing: "0.2em" }}>
+                  <p className="font-body text-warm-grey uppercase" style={{ fontSize: 11, letterSpacing: "0.22em" }}>
                     DIMENSION DIAGRAM
                   </p>
                 </div>
@@ -2098,13 +2121,13 @@ const ProductDetailPage = ({ navigate, params, products, categories, finishes })
                 ].map((doc, i) => (
                   <div key={i} className="flex items-center justify-between py-4" style={{ borderBottom: "1px solid #D8CEC0" }}>
                     <div className="flex items-center gap-4">
-                      <span className="font-body text-warm-grey uppercase" style={{ fontSize: 10, letterSpacing: "0.2em", background: "#D8CEC0", padding: "2px 8px" }}>{doc.type}</span>
-                      <span className="font-body text-charcoal" style={{ fontSize: 13, fontWeight: 300 }}>{doc.label}</span>
+                      <span className="font-body text-warm-grey uppercase" style={{ fontSize: 11, letterSpacing: "0.22em", background: "#D8CEC0", padding: "2px 8px" }}>{doc.type}</span>
+                      <span className="font-body text-charcoal" style={{ fontSize: 15, fontWeight: 300 }}>{doc.label}</span>
                     </div>
                     <button
                       onClick={() => navigate("contact")}
                       className="font-body text-warm-grey hover:text-charcoal transition-colors"
-                      style={{ fontSize: 11, letterSpacing: "0.15em" }}>
+                      style={{ fontSize: 12, letterSpacing: "0.17em" }}>
                       Request →
                     </button>
                   </div>
@@ -2116,14 +2139,14 @@ const ProductDetailPage = ({ navigate, params, products, categories, finishes })
           {/* Related products */}
           {related.length > 0 && (
             <div style={{ marginTop: 64, borderTop: "1px solid #D8CEC0", paddingTop: 48 }}>
-              <p className="font-body uppercase text-warm-grey mb-8" style={{ fontSize: 11, letterSpacing: "0.25em" }}>YOU MAY ALSO SPECIFY</p>
+              <p className="font-body uppercase text-warm-grey mb-8" style={{ fontSize: 12, letterSpacing: "0.28em" }}>YOU MAY ALSO SPECIFY</p>
               <div className="grid grid-cols-3 gap-4">
                 {related.slice(0, 3).map(rel => (
                   <button key={rel.id} onClick={() => navigate("product-detail", { productId: rel.id })}
                     className="text-left">
                     <ImageWithWatermark src={rel.images[0]} aspectClass="aspect-square" monogramSize={16} alt={rel.name} />
-                    <p className="font-body text-warm-grey mt-2" style={{ fontSize: 10, letterSpacing: "0.2em" }}>{rel.id}</p>
-                    <p className="font-body text-charcoal" style={{ fontSize: 13, fontWeight: 400, letterSpacing: "0.08em", marginTop: 2 }}>{rel.name}</p>
+                    <p className="font-body text-warm-grey mt-2" style={{ fontSize: 11, letterSpacing: "0.22em" }}>{rel.id}</p>
+                    <p className="font-body text-charcoal" style={{ fontSize: 15, fontWeight: 400, letterSpacing: "0.10em", marginTop: 2 }}>{rel.name}</p>
                   </button>
                 ))}
               </div>
@@ -2140,11 +2163,11 @@ const ProductDetailPage = ({ navigate, params, products, categories, finishes })
 // ═══════════════════════════════════════════
 
 const CollectionsPage = ({ navigate, collections, products }) => (
-  <div style={{ paddingTop: 72 }}>
+  <div style={{ paddingTop: 80 }}>
     <div className="relative flex items-center justify-center" style={{ height: "40vh", background: "linear-gradient(145deg, #D8CEC0, #8F8981)" }}>
       <div className="absolute inset-0" style={{ background: "rgba(14,14,13,0.4)" }} />
       <div className="relative z-10 text-center">
-        <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 300, letterSpacing: "0.15em" }}>
+        <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(38px, 5vw, 64px)", fontWeight: 300, letterSpacing: "0.17em" }}>
           Signature Collections
         </h1>
         <div style={{ width: 40, height: 2, background: "#C7B9A6", margin: "16px auto 0" }} />
@@ -2171,9 +2194,9 @@ const CollectionsPage = ({ navigate, collections, products }) => (
               </div>
               <div className="pt-6">
                 <div style={{ width: 32, height: 2, background: "#C7B9A6", marginBottom: 16 }} />
-                <h3 className="font-display text-charcoal" style={{ fontSize: 28, fontWeight: 400, letterSpacing: "0.15em" }}>{col.name}</h3>
-                <p className="font-body text-warm-grey mt-2" style={{ fontSize: 13, fontWeight: 300 }}>{col.mood}</p>
-                <p className="font-body text-charcoal uppercase mt-5" style={{ fontSize: 11, letterSpacing: "0.25em" }}>Explore →</p>
+                <h3 className="font-display text-charcoal" style={{ fontSize: 34, fontWeight: 400, letterSpacing: "0.17em" }}>{col.name}</h3>
+                <p className="font-body text-warm-grey mt-2" style={{ fontSize: 15, fontWeight: 300 }}>{col.mood}</p>
+                <p className="font-body text-charcoal uppercase mt-5" style={{ fontSize: 12, letterSpacing: "0.28em" }}>Explore →</p>
               </div>
             </button>
           ))}
@@ -2187,13 +2210,13 @@ const CollectionDetailPage = ({ navigate, params, collections, products, categor
   const collection = collections.find(c => c.id === params.collectionId) || collections[0];
   const colProducts = products.filter(p => p.collectionId === collection.id && p.published);
   return (
-    <div style={{ paddingTop: 72 }}>
+    <div style={{ paddingTop: 80 }}>
       <div className="relative flex items-center justify-center" style={{ height: "50vh", background: "linear-gradient(145deg, #D8CEC0, #171717)" }}>
         <div className="absolute inset-0" style={{ background: "rgba(14,14,13,0.5)" }} />
         <div className="relative z-10 text-center">
-          <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 11, letterSpacing: "0.25em" }}>EVOKE COLLECTION</p>
-          <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(36px, 6vw, 72px)", fontWeight: 300, letterSpacing: "0.2em" }}>{collection.name}</h1>
-          <p className="font-body text-warm-white mt-4" style={{ fontSize: 15, fontWeight: 300, opacity: 0.75 }}>{collection.mood}</p>
+          <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 12, letterSpacing: "0.28em" }}>EVOKE COLLECTION</p>
+          <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(42px, 6vw, 80px)", fontWeight: 300, letterSpacing: "0.22em" }}>{collection.name}</h1>
+          <p className="font-body text-warm-white mt-4" style={{ fontSize: 17, fontWeight: 300, opacity: 0.75 }}>{collection.mood}</p>
           <div style={{ width: 40, height: 2, background: "#C7B9A6", margin: "20px auto 0" }} />
         </div>
       </div>
@@ -2209,20 +2232,20 @@ const CollectionDetailPage = ({ navigate, params, collections, products, categor
                 <div style={{ border: "1px solid #D8CEC0" }}>
                   <ImageWithWatermark src={p.images[0]} aspectClass="aspect-square" monogramSize={20} alt={p.name} />
                   <div className="p-5" style={{ background: "#F5F1EA" }}>
-                    <p className="font-body text-warm-grey uppercase" style={{ fontSize: 10, letterSpacing: "0.2em" }}>{p.id}</p>
-                    <h3 className="font-display text-charcoal mt-1" style={{ fontSize: 17, fontWeight: 400, letterSpacing: "0.1em" }}>{p.name}</h3>
-                    <p className="font-body text-charcoal uppercase mt-3" style={{ fontSize: 11, letterSpacing: "0.2em" }}>View Specifications →</p>
+                    <p className="font-body text-warm-grey uppercase" style={{ fontSize: 11, letterSpacing: "0.22em" }}>{p.id}</p>
+                    <h3 className="font-display text-charcoal mt-1" style={{ fontSize: 20, fontWeight: 400, letterSpacing: "0.1em" }}>{p.name}</h3>
+                    <p className="font-body text-charcoal uppercase mt-3" style={{ fontSize: 12, letterSpacing: "0.22em" }}>View Specifications →</p>
                   </div>
                 </div>
               </button>
             ))}
           </div>
           <div className="mt-16 py-16 text-center" style={{ background: "#0E0E0D" }}>
-            <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 11, letterSpacing: "0.25em" }}>FOR PROJECT TEAMS</p>
-            <h2 className="font-display text-warm-white mb-6" style={{ fontSize: 32, fontWeight: 400, letterSpacing: "0.12em" }}>Request Specification Pack</h2>
+            <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 12, letterSpacing: "0.28em" }}>FOR PROJECT TEAMS</p>
+            <h2 className="font-display text-warm-white mb-6" style={{ fontSize: 38, fontWeight: 400, letterSpacing: "0.14em" }}>Request Specification Pack</h2>
             <button onClick={() => navigate("contact")}
               className="font-body uppercase transition-all duration-300"
-              style={{ fontSize: 11, letterSpacing: "0.25em", background: "#F5F1EA", color: "#171717", padding: "14px 36px" }}>
+              style={{ fontSize: 12, letterSpacing: "0.28em", background: "#F5F1EA", color: "#171717", padding: "14px 36px" }}>
               Get in Touch
             </button>
           </div>
@@ -2241,28 +2264,28 @@ const ContactPage = ({ navigate }) => {
   const [submitted, setSubmitted] = useState(false);
 
   return (
-    <div style={{ paddingTop: 72 }}>
+    <div style={{ paddingTop: 80 }}>
       <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
         <div className="py-20 px-10 lg:px-16" style={{ background: "#D8CEC0" }}>
-          <p className="font-body uppercase text-charcoal mb-4" style={{ fontSize: 11, letterSpacing: "0.25em", opacity: 0.6 }}>GET IN TOUCH</p>
-          <h1 className="font-display text-charcoal mb-8" style={{ fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, letterSpacing: "0.12em" }}>
+          <p className="font-body uppercase text-charcoal mb-4" style={{ fontSize: 12, letterSpacing: "0.28em", opacity: 0.6 }}>GET IN TOUCH</p>
+          <h1 className="font-display text-charcoal mb-8" style={{ fontSize: "clamp(38px, 4vw, 56px)", fontWeight: 400, letterSpacing: "0.14em" }}>
             Project Inquiry
           </h1>
           <div style={{ width: 40, height: 2, background: "#8F8981", marginBottom: 40 }} />
           <div className="space-y-6">
             <div>
-              <p className="font-body text-charcoal uppercase mb-1" style={{ fontSize: 10, letterSpacing: "0.2em", opacity: 0.7 }}>EMAIL</p>
-              <p className="font-body text-charcoal" style={{ fontSize: 15, fontWeight: 300 }}>projects@evoke.in</p>
+              <p className="font-body text-charcoal uppercase mb-1" style={{ fontSize: 11, letterSpacing: "0.22em", opacity: 0.7 }}>EMAIL</p>
+              <p className="font-body text-charcoal" style={{ fontSize: 17, fontWeight: 300 }}>projects@evoke.in</p>
             </div>
             <div>
-              <p className="font-body text-charcoal uppercase mb-1" style={{ fontSize: 10, letterSpacing: "0.2em", opacity: 0.7 }}>SHOWROOMS</p>
-              <p className="font-body text-charcoal" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.8 }}>
+              <p className="font-body text-charcoal uppercase mb-1" style={{ fontSize: 11, letterSpacing: "0.22em", opacity: 0.7 }}>SHOWROOMS</p>
+              <p className="font-body text-charcoal" style={{ fontSize: 17, fontWeight: 300, lineHeight: 1.95 }}>
                 Bengaluru · Mumbai · Delhi NCR<br />New Appointment Required
               </p>
             </div>
             <div>
-              <p className="font-body text-charcoal uppercase mb-1" style={{ fontSize: 10, letterSpacing: "0.2em", opacity: 0.7 }}>SPECIFICATION SUPPORT</p>
-              <p className="font-body text-charcoal" style={{ fontSize: 15, fontWeight: 300 }}>+91 80 4612 0000</p>
+              <p className="font-body text-charcoal uppercase mb-1" style={{ fontSize: 11, letterSpacing: "0.22em", opacity: 0.7 }}>SPECIFICATION SUPPORT</p>
+              <p className="font-body text-charcoal" style={{ fontSize: 17, fontWeight: 300 }}>+91 80 4612 0000</p>
             </div>
           </div>
           <div className="mt-16 opacity-10 flex justify-center"><VMonogram size={80} color="#171717" /></div>
@@ -2271,19 +2294,19 @@ const ContactPage = ({ navigate }) => {
           {submitted ? (
             <div className="flex flex-col items-center justify-center h-full">
               <VMark size={48} className="text-charcoal mb-8" />
-              <h2 className="font-display text-charcoal text-center" style={{ fontSize: 32, fontWeight: 400, letterSpacing: "0.12em" }}>Inquiry Received</h2>
-              <p className="font-body text-warm-grey text-center mt-4" style={{ fontSize: 15, fontWeight: 300 }}>Our specification team will be in touch within 48 hours.</p>
+              <h2 className="font-display text-charcoal text-center" style={{ fontSize: 38, fontWeight: 400, letterSpacing: "0.14em" }}>Inquiry Received</h2>
+              <p className="font-body text-warm-grey text-center mt-4" style={{ fontSize: 17, fontWeight: 300 }}>Our specification team will be in touch within 48 hours.</p>
             </div>
           ) : (
             <div>
-              <h2 className="font-display text-charcoal mb-10" style={{ fontSize: 28, fontWeight: 400, letterSpacing: "0.12em" }}>Tell us about your project</h2>
+              <h2 className="font-display text-charcoal mb-10" style={{ fontSize: 34, fontWeight: 400, letterSpacing: "0.14em" }}>Tell us about your project</h2>
               <div className="grid grid-cols-2 gap-5 mb-5">
                 {[
                   { key: "name", label: "NAME", placeholder: "Your full name" },
                   { key: "company", label: "COMPANY / PRACTICE", placeholder: "Firm or company name" },
                 ].map(field => (
                   <div key={field.key}>
-                    <label className="font-body uppercase text-warm-grey block mb-1" style={{ fontSize: 10, letterSpacing: "0.2em" }}>{field.label}</label>
+                    <label className="font-body uppercase text-warm-grey block mb-1" style={{ fontSize: 11, letterSpacing: "0.22em" }}>{field.label}</label>
                     <input
                       value={form[field.key]}
                       onChange={e => setForm(p => ({ ...p, [field.key]: e.target.value }))}
@@ -2297,7 +2320,7 @@ const ContactPage = ({ navigate }) => {
                 ))}
               </div>
               <div className="mb-5">
-                <label className="font-body uppercase text-warm-grey block mb-1" style={{ fontSize: 10, letterSpacing: "0.2em" }}>PROJECT TYPE</label>
+                <label className="font-body uppercase text-warm-grey block mb-1" style={{ fontSize: 11, letterSpacing: "0.22em" }}>PROJECT TYPE</label>
                 <select
                   value={form.projectType}
                   onChange={e => setForm(p => ({ ...p, projectType: e.target.value }))}
@@ -2315,7 +2338,7 @@ const ContactPage = ({ navigate }) => {
                   { key: "email", label: "EMAIL", placeholder: "email@example.com" },
                 ].map(field => (
                   <div key={field.key}>
-                    <label className="font-body uppercase text-warm-grey block mb-1" style={{ fontSize: 10, letterSpacing: "0.2em" }}>{field.label}</label>
+                    <label className="font-body uppercase text-warm-grey block mb-1" style={{ fontSize: 11, letterSpacing: "0.22em" }}>{field.label}</label>
                     <input
                       value={form[field.key]}
                       onChange={e => setForm(p => ({ ...p, [field.key]: e.target.value }))}
@@ -2329,7 +2352,7 @@ const ContactPage = ({ navigate }) => {
                 ))}
               </div>
               <div className="mb-5">
-                <label className="font-body uppercase text-warm-grey block mb-1" style={{ fontSize: 10, letterSpacing: "0.2em" }}>MESSAGE</label>
+                <label className="font-body uppercase text-warm-grey block mb-1" style={{ fontSize: 11, letterSpacing: "0.22em" }}>MESSAGE</label>
                 <textarea
                   value={form.message}
                   onChange={e => setForm(p => ({ ...p, message: e.target.value }))}
@@ -2347,7 +2370,7 @@ const ContactPage = ({ navigate }) => {
                   setSubmitted(true);
                 }}
                 className="w-full font-body uppercase transition-all duration-300"
-                style={{ fontSize: 11, letterSpacing: "0.25em", fontWeight: 400, background: "#171717", color: "#F5F1EA", padding: "16px" }}
+                style={{ fontSize: 12, letterSpacing: "0.28em", fontWeight: 400, background: "#171717", color: "#F5F1EA", padding: "16px" }}
                 onMouseEnter={e => e.currentTarget.style.background = "#0E0E0D"}
                 onMouseLeave={e => e.currentTarget.style.background = "#171717"}
               >Send Inquiry</button>
@@ -2458,11 +2481,11 @@ const SearchPage = ({ navigate, query, products, categories }) => {
   };
 
   return (
-    <div style={{ paddingTop: 72, minHeight: "100vh", background: "#F5F1EA" }}>
+    <div style={{ paddingTop: 80, minHeight: "100vh", background: "#F5F1EA" }}>
       {/* Search header */}
       <div style={{ background: "#0E0E0D", padding: "48px 0 40px" }}>
         <div className="px-8 lg:px-16">
-          <p className="font-body uppercase text-warm-grey mb-5" style={{ fontSize: 10, letterSpacing: "0.3em" }}>PRODUCT SEARCH</p>
+          <p className="font-body uppercase text-warm-grey mb-5" style={{ fontSize: 11, letterSpacing: "0.32em" }}>PRODUCT SEARCH</p>
           <form onSubmit={handleSearchSubmit} className="flex items-end gap-0" style={{ maxWidth: 680 }}>
             <input
               type="text"
@@ -2471,7 +2494,7 @@ const SearchPage = ({ navigate, query, products, categories }) => {
               placeholder="Search by product, finish, collection, SKU…"
               className="font-body text-warm-white flex-1"
               style={{
-                fontSize: 18, fontWeight: 300, letterSpacing: "0.04em",
+                fontSize: 21, fontWeight: 300, letterSpacing: "0.04em",
                 background: "transparent", border: "none",
                 borderBottom: "1px solid rgba(245,241,234,0.3)",
                 padding: "0 0 14px 0", outline: "none",
@@ -2481,7 +2504,7 @@ const SearchPage = ({ navigate, query, products, categories }) => {
             <button type="submit"
               className="font-body uppercase text-warm-white transition-colors duration-200"
               style={{
-                fontSize: 11, letterSpacing: "0.25em",
+                fontSize: 12, letterSpacing: "0.28em",
                 padding: "0 24px 14px 24px",
                 borderBottom: "1px solid rgba(245,241,234,0.3)",
                 background: "transparent", flexShrink: 0,
@@ -2506,13 +2529,13 @@ const SearchPage = ({ navigate, query, products, categories }) => {
                 }
               </p>
             ) : (
-              <p className="font-body text-warm-grey" style={{ fontSize: 13 }}>Enter a search term above</p>
+              <p className="font-body text-warm-grey" style={{ fontSize: 15 }}>Enter a search term above</p>
             )}
           </div>
           {(results.length > 0 || fallback.length > 0) && (
             <select value={sortBy} onChange={e => setSortBy(e.target.value)}
               className="font-body text-charcoal"
-              style={{ fontSize: 11, letterSpacing: "0.12em", border: "1px solid #D8CEC0", background: "#F5F1EA", padding: "5px 26px 5px 10px", cursor: "pointer", backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238F8981'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center", appearance: "none" }}>
+              style={{ fontSize: 12, letterSpacing: "0.14em", border: "1px solid #D8CEC0", background: "#F5F1EA", padding: "5px 26px 5px 10px", cursor: "pointer", backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238F8981'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center", appearance: "none" }}>
               {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           )}
@@ -2532,12 +2555,12 @@ const SearchPage = ({ navigate, query, products, categories }) => {
                   onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
                   <ImageWithWatermark src={product.images[0]} aspectClass="aspect-square" monogramSize={20} alt={product.name} />
                   <div className="pt-4">
-                    <p className="font-body uppercase text-warm-grey" style={{ fontSize: 9, letterSpacing: "0.25em", marginBottom: 6 }}>
+                    <p className="font-body uppercase text-warm-grey" style={{ fontSize: 10, letterSpacing: "0.28em", marginBottom: 6 }}>
                       {product.collectionId?.charAt(0).toUpperCase() + product.collectionId?.slice(1)} · {product.sku}
                     </p>
-                    <p className="font-display text-charcoal" style={{ fontSize: 17, fontWeight: 400, letterSpacing: "0.08em", lineHeight: 1.3 }}>{product.name}</p>
-                    <p className="font-body text-warm-grey mt-2" style={{ fontSize: 12, fontWeight: 300, lineHeight: 1.6 }}>{product.description?.slice(0, 80)}…</p>
-                    <p className="font-body uppercase text-charcoal mt-3" style={{ fontSize: 10, letterSpacing: "0.2em" }}>Price on Application</p>
+                    <p className="font-display text-charcoal" style={{ fontSize: 20, fontWeight: 400, letterSpacing: "0.10em", lineHeight: 1.35 }}>{product.name}</p>
+                    <p className="font-body text-warm-grey mt-2" style={{ fontSize: 13, fontWeight: 300, lineHeight: 1.75 }}>{product.description?.slice(0, 80)}…</p>
+                    <p className="font-body uppercase text-charcoal mt-3" style={{ fontSize: 11, letterSpacing: "0.22em" }}>Price on Application</p>
                   </div>
                 </button>
               ))}
@@ -2547,16 +2570,16 @@ const SearchPage = ({ navigate, query, products, categories }) => {
               {/* Empty state */}
               <div className="text-center py-20 mb-16">
                 <VMonogram size={48} color="#D8CEC0" className="mx-auto mb-6" />
-                <p className="font-display text-charcoal mb-3" style={{ fontSize: 28, fontWeight: 300, letterSpacing: "0.12em" }}>
+                <p className="font-display text-charcoal mb-3" style={{ fontSize: 34, fontWeight: 300, letterSpacing: "0.14em" }}>
                   No Results Found
                 </p>
-                <p className="font-body text-warm-grey mb-10 mx-auto" style={{ fontSize: 14, fontWeight: 300, maxWidth: 400, lineHeight: 1.8 }}>
+                <p className="font-body text-warm-grey mb-10 mx-auto" style={{ fontSize: 14, fontWeight: 300, maxWidth: 400, lineHeight: 1.95 }}>
                   We couldn't find a product matching "<span style={{ fontStyle: "italic" }}>{localQuery}</span>".
                   Our specification team may be able to help.
                 </p>
                 <button onClick={() => navigate("contact")}
                   className="font-body uppercase transition-all duration-300"
-                  style={{ fontSize: 11, letterSpacing: "0.25em", background: "#171717", color: "#F5F1EA", padding: "14px 36px" }}
+                  style={{ fontSize: 12, letterSpacing: "0.28em", background: "#171717", color: "#F5F1EA", padding: "14px 36px" }}
                   onMouseEnter={e => e.currentTarget.style.background = "#0E0E0D"}
                   onMouseLeave={e => e.currentTarget.style.background = "#171717"}>
                   Contact EVOKE →
@@ -2564,7 +2587,7 @@ const SearchPage = ({ navigate, query, products, categories }) => {
               </div>
               {/* Related products fallback */}
               <div>
-                <p className="font-body uppercase text-warm-grey mb-10" style={{ fontSize: 10, letterSpacing: "0.3em" }}>YOU MAY ALSO LIKE</p>
+                <p className="font-body uppercase text-warm-grey mb-10" style={{ fontSize: 11, letterSpacing: "0.32em" }}>YOU MAY ALSO LIKE</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                   {fallback.map(product => (
                     <button key={product.id}
@@ -2574,8 +2597,8 @@ const SearchPage = ({ navigate, query, products, categories }) => {
                       onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
                       <ImageWithWatermark src={product.images[0]} aspectClass="aspect-square" monogramSize={20} alt={product.name} />
                       <div className="pt-4">
-                        <p className="font-body uppercase text-warm-grey" style={{ fontSize: 9, letterSpacing: "0.25em", marginBottom: 6 }}>{product.collectionId} · {product.sku}</p>
-                        <p className="font-display text-charcoal" style={{ fontSize: 17, fontWeight: 400, letterSpacing: "0.08em" }}>{product.name}</p>
+                        <p className="font-body uppercase text-warm-grey" style={{ fontSize: 10, letterSpacing: "0.28em", marginBottom: 6 }}>{product.collectionId} · {product.sku}</p>
+                        <p className="font-display text-charcoal" style={{ fontSize: 20, fontWeight: 400, letterSpacing: "0.10em" }}>{product.name}</p>
                       </div>
                     </button>
                   ))}
@@ -2585,7 +2608,7 @@ const SearchPage = ({ navigate, query, products, categories }) => {
           ) : (
             // No query yet — show all featured
             <div>
-              <p className="font-body uppercase text-warm-grey mb-10" style={{ fontSize: 10, letterSpacing: "0.3em" }}>FEATURED PRODUCTS</p>
+              <p className="font-body uppercase text-warm-grey mb-10" style={{ fontSize: 11, letterSpacing: "0.32em" }}>FEATURED PRODUCTS</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 {applySort(products.filter(p => p.published && p.featured), sortBy).map(product => (
                   <button key={product.id}
@@ -2595,9 +2618,9 @@ const SearchPage = ({ navigate, query, products, categories }) => {
                     onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
                     <ImageWithWatermark src={product.images[0]} aspectClass="aspect-square" monogramSize={20} alt={product.name} />
                     <div className="pt-4">
-                      <p className="font-body uppercase text-warm-grey" style={{ fontSize: 9, letterSpacing: "0.25em", marginBottom: 6 }}>{product.collectionId} · {product.sku}</p>
-                      <p className="font-display text-charcoal" style={{ fontSize: 17, fontWeight: 400, letterSpacing: "0.08em" }}>{product.name}</p>
-                      <p className="font-body uppercase text-charcoal mt-3" style={{ fontSize: 10, letterSpacing: "0.2em" }}>Price on Application</p>
+                      <p className="font-body uppercase text-warm-grey" style={{ fontSize: 10, letterSpacing: "0.28em", marginBottom: 6 }}>{product.collectionId} · {product.sku}</p>
+                      <p className="font-display text-charcoal" style={{ fontSize: 20, fontWeight: 400, letterSpacing: "0.10em" }}>{product.name}</p>
+                      <p className="font-body uppercase text-charcoal mt-3" style={{ fontSize: 11, letterSpacing: "0.22em" }}>Price on Application</p>
                     </div>
                   </button>
                 ))}
@@ -2649,14 +2672,14 @@ const ProjectsPage = ({ navigate }) => {
   ];
 
   return (
-    <div style={{ paddingTop: 72 }}>
+    <div style={{ paddingTop: 80 }}>
       {/* Hero */}
       <div className="relative flex items-center justify-center"
         style={{ height: "40vh", minHeight: 320, background: "linear-gradient(145deg, #D8CEC0 0%, #8F8981 60%, #171717 100%)" }}>
         <div className="absolute inset-0" style={{ background: "rgba(14,14,13,0.45)" }} />
         <div className="relative z-10 text-center">
-          <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 11, letterSpacing: "0.25em" }}>OUR WORK</p>
-          <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 300, letterSpacing: "0.15em" }}>
+          <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 12, letterSpacing: "0.28em" }}>OUR WORK</p>
+          <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(38px, 5vw, 64px)", fontWeight: 300, letterSpacing: "0.17em" }}>
             Landmark Projects
           </h1>
           <div style={{ width: 40, height: 2, background: "#C7B9A6", margin: "16px auto 0" }} />
@@ -2666,7 +2689,7 @@ const ProjectsPage = ({ navigate }) => {
       {/* Intro strip */}
       <section style={{ background: "#0E0E0D", padding: "48px 0" }}>
         <div className="px-8 lg:px-16">
-          <p className="font-body text-warm-grey text-center mx-auto" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.9, maxWidth: 640 }}>
+          <p className="font-body text-warm-grey text-center mx-auto" style={{ fontSize: 17, fontWeight: 300, lineHeight: 2.0, maxWidth: 640 }}>
             From private residences to five-star resorts, EVOKE delivers complete bathroom solutions for the world's most demanding projects.
           </p>
         </div>
@@ -2688,26 +2711,26 @@ const ProjectsPage = ({ navigate }) => {
                     </span>
                     <div style={{ width: 1, height: 64, background: "#D8CEC0" }} />
                     <div>
-                      <p className="font-body uppercase text-warm-grey" style={{ fontSize: 10, letterSpacing: "0.25em", marginBottom: 6 }}>{project.type}</p>
-                      <p className="font-body text-warm-grey" style={{ fontSize: 12, fontWeight: 300 }}>{project.location}</p>
+                      <p className="font-body uppercase text-warm-grey" style={{ fontSize: 11, letterSpacing: "0.28em", marginBottom: 6 }}>{project.type}</p>
+                      <p className="font-body text-warm-grey" style={{ fontSize: 13, fontWeight: 300 }}>{project.location}</p>
                     </div>
                   </div>
 
-                  <h2 className="font-display text-charcoal mb-6" style={{ fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 400, letterSpacing: "0.12em", lineHeight: 1.2 }}>
+                  <h2 className="font-display text-charcoal mb-6" style={{ fontSize: "clamp(28px, 3vw, 42px)", fontWeight: 400, letterSpacing: "0.14em", lineHeight: 1.2 }}>
                     {project.name}
                   </h2>
 
-                  <p className="font-body text-warm-grey mb-8" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.9 }}>
+                  <p className="font-body text-warm-grey mb-8" style={{ fontSize: 17, fontWeight: 300, lineHeight: 2.0 }}>
                     {project.summary}
                   </p>
 
-                  <p className="font-body text-warm-grey mb-3" style={{ fontSize: 11, fontWeight: 400, letterSpacing: "0.15em", textTransform: "uppercase" }}>Scope</p>
-                  <p className="font-body text-warm-grey mb-8" style={{ fontSize: 13, fontWeight: 300, lineHeight: 1.7 }}>{project.units}</p>
+                  <p className="font-body text-warm-grey mb-3" style={{ fontSize: 12, fontWeight: 400, letterSpacing: "0.17em", textTransform: "uppercase" }}>Scope</p>
+                  <p className="font-body text-warm-grey mb-8" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.85 }}>{project.units}</p>
 
-                  <p className="font-body text-warm-grey mb-3" style={{ fontSize: 11, fontWeight: 400, letterSpacing: "0.15em", textTransform: "uppercase" }}>Products Specified</p>
+                  <p className="font-body text-warm-grey mb-3" style={{ fontSize: 12, fontWeight: 400, letterSpacing: "0.17em", textTransform: "uppercase" }}>Products Specified</p>
                   <div className="flex flex-wrap gap-2">
                     {project.collections.map(c => (
-                      <span key={c} className="font-body" style={{ fontSize: 11, letterSpacing: "0.15em", background: "#F5F1EA", color: "#8F8981", border: "1px solid #D8CEC0", padding: "4px 12px" }}>
+                      <span key={c} className="font-body" style={{ fontSize: 12, letterSpacing: "0.17em", background: "#F5F1EA", color: "#8F8981", border: "1px solid #D8CEC0", padding: "4px 12px" }}>
                         {c}
                       </span>
                     ))}
@@ -2728,8 +2751,8 @@ const ProjectsPage = ({ navigate }) => {
                   <div className="absolute inset-0 flex items-end p-8"
                     style={{ background: "linear-gradient(to top, rgba(14,14,13,0.5) 0%, transparent 60%)" }}>
                     <div>
-                      <p className="font-body uppercase text-warm-white" style={{ fontSize: 9, letterSpacing: "0.3em", opacity: 0.7 }}>PROJECT {project.number}</p>
-                      <p className="font-display text-warm-white" style={{ fontSize: 18, fontWeight: 300, letterSpacing: "0.12em" }}>{project.name}</p>
+                      <p className="font-body uppercase text-warm-white" style={{ fontSize: 10, letterSpacing: "0.32em", opacity: 0.7 }}>PROJECT {project.number}</p>
+                      <p className="font-display text-warm-white" style={{ fontSize: 21, fontWeight: 300, letterSpacing: "0.14em" }}>{project.name}</p>
                     </div>
                   </div>
                   <div className="absolute top-6 right-6" style={{ opacity: 0.12 }}>
@@ -2746,16 +2769,16 @@ const ProjectsPage = ({ navigate }) => {
       {/* CTA */}
       <section style={{ background: "#0E0E0D", padding: "80px 0" }}>
         <div className="px-8 lg:px-16 text-center">
-          <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 11, letterSpacing: "0.25em" }}>START A PROJECT</p>
-          <h2 className="font-display text-warm-white mb-6" style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 400, letterSpacing: "0.12em" }}>
+          <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 12, letterSpacing: "0.28em" }}>START A PROJECT</p>
+          <h2 className="font-display text-warm-white mb-6" style={{ fontSize: "clamp(32px, 4vw, 52px)", fontWeight: 400, letterSpacing: "0.14em" }}>
             Let's Specify Together
           </h2>
-          <p className="font-body text-warm-grey mb-10 mx-auto" style={{ fontSize: 15, fontWeight: 300, maxWidth: 480, lineHeight: 1.8 }}>
+          <p className="font-body text-warm-grey mb-10 mx-auto" style={{ fontSize: 17, fontWeight: 300, maxWidth: 480, lineHeight: 1.95 }}>
             Tell us about your project and we'll connect you with the right specification consultant.
           </p>
           <button onClick={() => navigate("contact")}
             className="font-body uppercase transition-all duration-300"
-            style={{ fontSize: 11, letterSpacing: "0.25em", background: "#F5F1EA", color: "#171717", padding: "14px 40px" }}
+            style={{ fontSize: 12, letterSpacing: "0.28em", background: "#F5F1EA", color: "#171717", padding: "14px 40px" }}
             onMouseEnter={e => e.currentTarget.style.background = "#D8CEC0"}
             onMouseLeave={e => e.currentTarget.style.background = "#F5F1EA"}>
             Project Inquiry →
@@ -2817,14 +2840,14 @@ const InspirationPage = ({ navigate }) => {
   ];
 
   return (
-    <div style={{ paddingTop: 72 }}>
+    <div style={{ paddingTop: 80 }}>
       {/* Hero */}
       <div className="relative flex items-center justify-center"
         style={{ height: "40vh", minHeight: 320, background: "linear-gradient(145deg, #D8CEC0 0%, #8F8981 60%, #171717 100%)" }}>
         <div className="absolute inset-0" style={{ background: "rgba(14,14,13,0.4)" }} />
         <div className="relative z-10 text-center">
-          <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 11, letterSpacing: "0.25em" }}>SPACES & IDEAS</p>
-          <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 300, letterSpacing: "0.15em" }}>Inspiration</h1>
+          <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 12, letterSpacing: "0.28em" }}>SPACES & IDEAS</p>
+          <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(38px, 5vw, 64px)", fontWeight: 300, letterSpacing: "0.17em" }}>Inspiration</h1>
           <div style={{ width: 40, height: 2, background: "#C7B9A6", margin: "16px auto 0" }} />
         </div>
       </div>
@@ -2851,8 +2874,8 @@ const InspirationPage = ({ navigate }) => {
                   <div className="absolute inset-0 flex items-end p-6"
                     style={{ background: "linear-gradient(to top, rgba(14,14,13,0.65) 0%, transparent 55%)" }}>
                     <div>
-                      <p className="font-body uppercase text-warm-white" style={{ fontSize: 9, letterSpacing: "0.3em", opacity: 0.6, marginBottom: 4 }}>{board.eyebrow}</p>
-                      <p className="font-display text-warm-white" style={{ fontSize: 20, fontWeight: 400, letterSpacing: "0.12em" }}>{board.label}</p>
+                      <p className="font-body uppercase text-warm-white" style={{ fontSize: 10, letterSpacing: "0.32em", opacity: 0.6, marginBottom: 4 }}>{board.eyebrow}</p>
+                      <p className="font-display text-warm-white" style={{ fontSize: 24, fontWeight: 400, letterSpacing: "0.14em" }}>{board.label}</p>
                     </div>
                   </div>
                   <div className="absolute top-4 right-4" style={{ opacity: 0.12 }}>
@@ -2860,10 +2883,10 @@ const InspirationPage = ({ navigate }) => {
                   </div>
                 </div>
                 <div className="px-6 py-6" style={{ borderTop: "1px solid #D8CEC0" }}>
-                  <p className="font-body text-warm-grey" style={{ fontSize: 13, fontWeight: 300, lineHeight: 1.8 }}>{board.description}</p>
+                  <p className="font-body text-warm-grey" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.95 }}>{board.description}</p>
                   <div className="flex flex-wrap gap-2 mt-4">
                     {board.tags.map(tag => (
-                      <span key={tag} className="font-body" style={{ fontSize: 10, letterSpacing: "0.15em", background: "#F5F1EA", color: "#8F8981", padding: "3px 10px", border: "1px solid #D8CEC0" }}>
+                      <span key={tag} className="font-body" style={{ fontSize: 11, letterSpacing: "0.17em", background: "#F5F1EA", color: "#8F8981", padding: "3px 10px", border: "1px solid #D8CEC0" }}>
                         {tag}
                       </span>
                     ))}
@@ -2885,8 +2908,8 @@ const InspirationPage = ({ navigate }) => {
                   <div className="absolute inset-0 flex items-end p-6"
                     style={{ background: "linear-gradient(to top, rgba(14,14,13,0.65) 0%, transparent 55%)" }}>
                     <div>
-                      <p className="font-body uppercase text-warm-white" style={{ fontSize: 9, letterSpacing: "0.3em", opacity: 0.6, marginBottom: 4 }}>{board.eyebrow}</p>
-                      <p className="font-display text-warm-white" style={{ fontSize: 20, fontWeight: 400, letterSpacing: "0.12em" }}>{board.label}</p>
+                      <p className="font-body uppercase text-warm-white" style={{ fontSize: 10, letterSpacing: "0.32em", opacity: 0.6, marginBottom: 4 }}>{board.eyebrow}</p>
+                      <p className="font-display text-warm-white" style={{ fontSize: 24, fontWeight: 400, letterSpacing: "0.14em" }}>{board.label}</p>
                     </div>
                   </div>
                   <div className="absolute top-4 right-4" style={{ opacity: 0.12 }}>
@@ -2894,10 +2917,10 @@ const InspirationPage = ({ navigate }) => {
                   </div>
                 </div>
                 <div className="px-6 py-6" style={{ borderTop: "1px solid #D8CEC0" }}>
-                  <p className="font-body text-warm-grey" style={{ fontSize: 13, fontWeight: 300, lineHeight: 1.8 }}>{board.description}</p>
+                  <p className="font-body text-warm-grey" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.95 }}>{board.description}</p>
                   <div className="flex flex-wrap gap-2 mt-4">
                     {board.tags.map(tag => (
-                      <span key={tag} className="font-body" style={{ fontSize: 10, letterSpacing: "0.15em", background: "#F5F1EA", color: "#8F8981", padding: "3px 10px", border: "1px solid #D8CEC0" }}>
+                      <span key={tag} className="font-body" style={{ fontSize: 11, letterSpacing: "0.17em", background: "#F5F1EA", color: "#8F8981", padding: "3px 10px", border: "1px solid #D8CEC0" }}>
                         {tag}
                       </span>
                     ))}
@@ -2913,24 +2936,24 @@ const InspirationPage = ({ navigate }) => {
       <section style={{ background: "#D8CEC0", padding: "72px 0" }}>
         <div className="px-8 lg:px-16 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
           <div>
-            <h2 className="font-display text-charcoal" style={{ fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 400, letterSpacing: "0.12em" }}>
+            <h2 className="font-display text-charcoal" style={{ fontSize: "clamp(28px, 3vw, 42px)", fontWeight: 400, letterSpacing: "0.14em" }}>
               Ready to Specify?
             </h2>
-            <p className="font-body text-warm-grey mt-3" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.8, maxWidth: 440 }}>
+            <p className="font-body text-warm-grey mt-3" style={{ fontSize: 17, fontWeight: 300, lineHeight: 1.95, maxWidth: 440 }}>
               Browse our complete product catalogue or speak to a specification consultant.
             </p>
           </div>
           <div className="flex gap-4 flex-wrap flex-shrink-0">
             <button onClick={() => navigate("category", { categoryId: "bath-fittings" })}
               className="font-body uppercase transition-all duration-300"
-              style={{ fontSize: 11, letterSpacing: "0.25em", background: "#171717", color: "#F5F1EA", padding: "14px 32px" }}
+              style={{ fontSize: 12, letterSpacing: "0.28em", background: "#171717", color: "#F5F1EA", padding: "14px 32px" }}
               onMouseEnter={e => e.currentTarget.style.background = "#0E0E0D"}
               onMouseLeave={e => e.currentTarget.style.background = "#171717"}>
               View Products →
             </button>
             <button onClick={() => navigate("contact")}
               className="font-body uppercase transition-all duration-300"
-              style={{ fontSize: 11, letterSpacing: "0.25em", border: "1px solid #171717", color: "#171717", padding: "14px 32px", background: "transparent" }}
+              style={{ fontSize: 12, letterSpacing: "0.28em", border: "1px solid #171717", color: "#171717", padding: "14px 32px", background: "transparent" }}
               onMouseEnter={e => { e.currentTarget.style.background = "#171717"; e.currentTarget.style.color = "#F5F1EA"; }}
               onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#171717"; }}>
               Speak to Us
@@ -2966,18 +2989,18 @@ const ArchitectsPage = ({ navigate }) => {
   ];
 
   return (
-    <div style={{ paddingTop: 72 }}>
+    <div style={{ paddingTop: 80 }}>
       {/* Hero */}
       <div className="relative flex items-center justify-center"
         style={{ height: "50vh", minHeight: 360, background: "linear-gradient(145deg, #171717 0%, #8F8981 70%, #D8CEC0 100%)" }}>
         <div className="absolute inset-0" style={{ background: "rgba(14,14,13,0.5)" }} />
         <div className="relative z-10 text-center px-6" style={{ maxWidth: 680 }}>
-          <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 11, letterSpacing: "0.25em" }}>SPECIFICATION COMMUNITY</p>
-          <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 300, letterSpacing: "0.15em", lineHeight: 1.15 }}>
+          <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 12, letterSpacing: "0.28em" }}>SPECIFICATION COMMUNITY</p>
+          <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(38px, 5vw, 64px)", fontWeight: 300, letterSpacing: "0.17em", lineHeight: 1.15 }}>
             Built for Specification
           </h1>
           <div style={{ width: 40, height: 2, background: "#C7B9A6", margin: "20px auto" }} />
-          <p className="font-body text-warm-white" style={{ fontSize: 15, fontWeight: 300, opacity: 0.75, lineHeight: 1.8 }}>
+          <p className="font-body text-warm-white" style={{ fontSize: 17, fontWeight: 300, opacity: 0.75, lineHeight: 1.95 }}>
             EVOKE works closely with architects, interior designers, consultants, and project teams to deliver tailored bathroom solutions.
           </p>
         </div>
@@ -2989,17 +3012,17 @@ const ArchitectsPage = ({ navigate }) => {
 
           {/* Services */}
           <div>
-            <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 11, letterSpacing: "0.25em" }}>WHAT WE OFFER</p>
-            <h2 className="font-display text-charcoal mb-8" style={{ fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 400, letterSpacing: "0.12em", lineHeight: 1.2 }}>
+            <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 12, letterSpacing: "0.28em" }}>WHAT WE OFFER</p>
+            <h2 className="font-display text-charcoal mb-8" style={{ fontSize: "clamp(28px, 3vw, 42px)", fontWeight: 400, letterSpacing: "0.14em", lineHeight: 1.2 }}>
               End-to-End Specification Support
             </h2>
             <div>
               {services.map((svc, i) => (
                 <div key={i} className="flex items-start gap-4 py-4" style={{ borderBottom: "1px solid #D8CEC0" }}>
-                  <span className="font-body text-warm-grey" style={{ fontSize: 12, minWidth: 24, paddingTop: 1 }}>
+                  <span className="font-body text-warm-grey" style={{ fontSize: 13, minWidth: 24, paddingTop: 1 }}>
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  <span className="font-body text-charcoal" style={{ fontSize: 14, fontWeight: 300, lineHeight: 1.6 }}>{svc}</span>
+                  <span className="font-body text-charcoal" style={{ fontSize: 14, fontWeight: 300, lineHeight: 1.75 }}>{svc}</span>
                 </div>
               ))}
             </div>
@@ -3007,8 +3030,8 @@ const ArchitectsPage = ({ navigate }) => {
 
           {/* Resources */}
           <div>
-            <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 11, letterSpacing: "0.25em" }}>RESOURCES AVAILABLE</p>
-            <h2 className="font-display text-charcoal mb-8" style={{ fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 400, letterSpacing: "0.12em", lineHeight: 1.2 }}>
+            <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 12, letterSpacing: "0.28em" }}>RESOURCES AVAILABLE</p>
+            <h2 className="font-display text-charcoal mb-8" style={{ fontSize: "clamp(28px, 3vw, 42px)", fontWeight: 400, letterSpacing: "0.14em", lineHeight: 1.2 }}>
               Everything You Need to Specify
             </h2>
             <div>
@@ -3018,15 +3041,15 @@ const ArchitectsPage = ({ navigate }) => {
                   onMouseEnter={e => e.currentTarget.style.background = "#F5F1EA"}
                   onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                   <div className="flex items-center gap-4 px-2">
-                    <span className="font-body uppercase" style={{ fontSize: 9, letterSpacing: "0.2em", background: "#D8CEC0", color: "#171717", padding: "2px 8px" }}>
+                    <span className="font-body uppercase" style={{ fontSize: 10, letterSpacing: "0.22em", background: "#D8CEC0", color: "#171717", padding: "2px 8px" }}>
                       {res.format}
                     </span>
                     <div>
-                      <p className="font-body text-charcoal" style={{ fontSize: 13, fontWeight: 400 }}>{res.label}</p>
-                      <p className="font-body text-warm-grey" style={{ fontSize: 11, fontWeight: 300 }}>{res.desc}</p>
+                      <p className="font-body text-charcoal" style={{ fontSize: 15, fontWeight: 400 }}>{res.label}</p>
+                      <p className="font-body text-warm-grey" style={{ fontSize: 12, fontWeight: 300 }}>{res.desc}</p>
                     </div>
                   </div>
-                  <span className="font-body text-warm-grey" style={{ fontSize: 12, paddingRight: 8 }}>→</span>
+                  <span className="font-body text-warm-grey" style={{ fontSize: 13, paddingRight: 8 }}>→</span>
                 </div>
               ))}
             </div>
@@ -3038,24 +3061,24 @@ const ArchitectsPage = ({ navigate }) => {
       <section style={{ background: "#0E0E0D", padding: "80px 0" }}>
         <div className="px-8 lg:px-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
-            <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 11, letterSpacing: "0.25em" }}>TRADE PROGRAMME</p>
-            <h2 className="font-display text-warm-white mb-6" style={{ fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 400, letterSpacing: "0.12em", lineHeight: 1.2 }}>
+            <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 12, letterSpacing: "0.28em" }}>TRADE PROGRAMME</p>
+            <h2 className="font-display text-warm-white mb-6" style={{ fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 400, letterSpacing: "0.14em", lineHeight: 1.2 }}>
               Apply for an EVOKE Professional Account
             </h2>
-            <p className="font-body text-warm-grey mb-10" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.9 }}>
+            <p className="font-body text-warm-grey mb-10" style={{ fontSize: 17, fontWeight: 300, lineHeight: 2.0 }}>
               Verified architects and designers receive access to trade pricing, priority specification support, dedicated account management, and full technical documentation.
             </p>
             <div className="flex gap-4 flex-wrap">
               <button onClick={() => navigate("contact")}
                 className="font-body uppercase transition-all duration-300"
-                style={{ fontSize: 11, letterSpacing: "0.25em", background: "#F5F1EA", color: "#171717", padding: "14px 36px" }}
+                style={{ fontSize: 12, letterSpacing: "0.28em", background: "#F5F1EA", color: "#171717", padding: "14px 36px" }}
                 onMouseEnter={e => e.currentTarget.style.background = "#D8CEC0"}
                 onMouseLeave={e => e.currentTarget.style.background = "#F5F1EA"}>
                 Apply Now
               </button>
               <button onClick={() => navigate("contact")}
                 className="font-body uppercase transition-all duration-300"
-                style={{ fontSize: 11, letterSpacing: "0.25em", border: "1px solid rgba(245,241,234,0.4)", color: "#F5F1EA", padding: "14px 36px", background: "transparent" }}
+                style={{ fontSize: 12, letterSpacing: "0.28em", border: "1px solid rgba(245,241,234,0.4)", color: "#F5F1EA", padding: "14px 36px", background: "transparent" }}
                 onMouseEnter={e => e.currentTarget.style.background = "rgba(245,241,234,0.1)"}
                 onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                 Request Samples
@@ -3068,7 +3091,7 @@ const ArchitectsPage = ({ navigate }) => {
               <VMonogram size={120} color="white" />
             </div>
             <div className="absolute bottom-8 left-8 right-8">
-              <p className="font-display text-warm-white" style={{ fontSize: 18, fontWeight: 300, letterSpacing: "0.12em", lineHeight: 1.4, opacity: 0.9 }}>
+              <p className="font-display text-warm-white" style={{ fontSize: 21, fontWeight: 300, letterSpacing: "0.14em", lineHeight: 1.4, opacity: 0.9 }}>
                 "Specification-grade products with the support to match."
               </p>
             </div>
@@ -3109,18 +3132,18 @@ const HospitalityPage = ({ navigate }) => {
   ];
 
   return (
-    <div style={{ paddingTop: 72 }}>
+    <div style={{ paddingTop: 80 }}>
       {/* Hero */}
       <div className="relative flex items-center justify-center"
         style={{ height: "50vh", minHeight: 360, background: "linear-gradient(145deg, #0E0E0D 0%, #171717 40%, #8F8981 100%)" }}>
         <div className="absolute inset-0" style={{ background: "rgba(14,14,13,0.4)" }} />
         <div className="relative z-10 text-center px-6" style={{ maxWidth: 680 }}>
-          <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 11, letterSpacing: "0.25em" }}>PROJECT SOLUTIONS</p>
-          <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 300, letterSpacing: "0.15em", lineHeight: 1.15 }}>
+          <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 12, letterSpacing: "0.28em" }}>PROJECT SOLUTIONS</p>
+          <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(38px, 5vw, 64px)", fontWeight: 300, letterSpacing: "0.17em", lineHeight: 1.15 }}>
             Project-Scale Solutions
           </h1>
           <div style={{ width: 40, height: 2, background: "#C7B9A6", margin: "20px auto" }} />
-          <p className="font-body text-warm-white" style={{ fontSize: 15, fontWeight: 300, opacity: 0.75, lineHeight: 1.8 }}>
+          <p className="font-body text-warm-white" style={{ fontSize: 17, fontWeight: 300, opacity: 0.75, lineHeight: 1.95 }}>
             EVOKE partners with hospitality operators, real estate developers, and project management firms to deliver complete bathroom solutions at scale.
           </p>
         </div>
@@ -3133,10 +3156,10 @@ const HospitalityPage = ({ navigate }) => {
             {stats.map((stat, i) => (
               <div key={i} className="flex flex-col items-center text-center py-10 px-6"
                 style={{ borderRight: i < 3 ? "1px solid rgba(167,163,155,0.2)" : "none" }}>
-                <p className="font-display text-warm-white" style={{ fontSize: "clamp(36px, 4vw, 56px)", fontWeight: 300, letterSpacing: "0.08em", lineHeight: 1 }}>
+                <p className="font-display text-warm-white" style={{ fontSize: "clamp(36px, 4vw, 56px)", fontWeight: 300, letterSpacing: "0.10em", lineHeight: 1 }}>
                   {stat.value}
                 </p>
-                <p className="font-body uppercase text-warm-grey mt-3" style={{ fontSize: 10, letterSpacing: "0.2em", lineHeight: 1.5 }}>
+                <p className="font-body uppercase text-warm-grey mt-3" style={{ fontSize: 11, letterSpacing: "0.22em", lineHeight: 1.5 }}>
                   {stat.label}
                 </p>
               </div>
@@ -3151,15 +3174,15 @@ const HospitalityPage = ({ navigate }) => {
 
           {/* Capabilities */}
           <div>
-            <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 11, letterSpacing: "0.25em" }}>SECTORS WE SERVE</p>
-            <h2 className="font-display text-charcoal mb-8" style={{ fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 400, letterSpacing: "0.12em", lineHeight: 1.2 }}>
+            <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 12, letterSpacing: "0.28em" }}>SECTORS WE SERVE</p>
+            <h2 className="font-display text-charcoal mb-8" style={{ fontSize: "clamp(28px, 3vw, 42px)", fontWeight: 400, letterSpacing: "0.14em", lineHeight: 1.2 }}>
               Built for Every Project Type
             </h2>
             <div className="grid grid-cols-2 gap-px" style={{ background: "#D8CEC0" }}>
               {capabilities.map((cap, i) => (
                 <div key={i} className="bg-warm-white flex items-center gap-3 px-5 py-5">
                   <VMonogram size={16} color="#C7B9A6" />
-                  <span className="font-body text-charcoal" style={{ fontSize: 13, fontWeight: 300 }}>{cap}</span>
+                  <span className="font-body text-charcoal" style={{ fontSize: 15, fontWeight: 300 }}>{cap}</span>
                 </div>
               ))}
             </div>
@@ -3167,15 +3190,15 @@ const HospitalityPage = ({ navigate }) => {
 
           {/* Project support */}
           <div>
-            <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 11, letterSpacing: "0.25em" }}>PROJECT SUPPORT</p>
-            <h2 className="font-display text-charcoal mb-8" style={{ fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 400, letterSpacing: "0.12em", lineHeight: 1.2 }}>
+            <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 12, letterSpacing: "0.28em" }}>PROJECT SUPPORT</p>
+            <h2 className="font-display text-charcoal mb-8" style={{ fontSize: "clamp(28px, 3vw, 42px)", fontWeight: 400, letterSpacing: "0.14em", lineHeight: 1.2 }}>
               Complete Project Management
             </h2>
             <div>
               {support.map((item, i) => (
                 <div key={i} className="py-5" style={{ borderBottom: "1px solid #D8CEC0" }}>
                   <p className="font-body text-charcoal mb-1" style={{ fontSize: 14, fontWeight: 400, letterSpacing: "0.05em" }}>{item.title}</p>
-                  <p className="font-body text-warm-grey" style={{ fontSize: 13, fontWeight: 300, lineHeight: 1.7 }}>{item.desc}</p>
+                  <p className="font-body text-warm-grey" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.85 }}>{item.desc}</p>
                 </div>
               ))}
             </div>
@@ -3186,16 +3209,16 @@ const HospitalityPage = ({ navigate }) => {
       {/* CTA */}
       <section style={{ background: "#D8CEC0", padding: "80px 0" }}>
         <div className="px-8 lg:px-16 text-center">
-          <p className="font-body uppercase text-charcoal mb-4" style={{ fontSize: 11, letterSpacing: "0.25em", opacity: 0.6 }}>PARTNER WITH EVOKE</p>
-          <h2 className="font-display text-charcoal mb-6" style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 400, letterSpacing: "0.12em" }}>
+          <p className="font-body uppercase text-charcoal mb-4" style={{ fontSize: 12, letterSpacing: "0.28em", opacity: 0.6 }}>PARTNER WITH EVOKE</p>
+          <h2 className="font-display text-charcoal mb-6" style={{ fontSize: "clamp(32px, 4vw, 52px)", fontWeight: 400, letterSpacing: "0.14em" }}>
             Let's Discuss Your Project
           </h2>
-          <p className="font-body text-warm-grey mb-10 mx-auto" style={{ fontSize: 15, fontWeight: 300, maxWidth: 480, lineHeight: 1.8 }}>
+          <p className="font-body text-warm-grey mb-10 mx-auto" style={{ fontSize: 17, fontWeight: 300, maxWidth: 480, lineHeight: 1.95 }}>
             Contact our project division for pricing, logistics, and specification support at any scale.
           </p>
           <button onClick={() => navigate("contact")}
             className="font-body uppercase transition-all duration-300"
-            style={{ fontSize: 11, letterSpacing: "0.25em", background: "#171717", color: "#F5F1EA", padding: "14px 40px" }}
+            style={{ fontSize: 12, letterSpacing: "0.28em", background: "#171717", color: "#F5F1EA", padding: "14px 40px" }}
             onMouseEnter={e => e.currentTarget.style.background = "#0E0E0D"}
             onMouseLeave={e => e.currentTarget.style.background = "#171717"}>
             Contact the Project Division →
@@ -3244,14 +3267,14 @@ const ShowroomsPage = ({ navigate }) => {
   ];
 
   return (
-    <div style={{ paddingTop: 72 }}>
+    <div style={{ paddingTop: 80 }}>
       {/* Hero */}
       <div className="relative flex items-center justify-center"
         style={{ height: "40vh", minHeight: 320, background: "linear-gradient(145deg, #D8CEC0 0%, #8F8981 60%, #171717 100%)" }}>
         <div className="absolute inset-0" style={{ background: "rgba(14,14,13,0.4)" }} />
         <div className="relative z-10 text-center">
-          <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 11, letterSpacing: "0.25em" }}>FIND EVOKE</p>
-          <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 300, letterSpacing: "0.15em" }}>Showrooms & Dealers</h1>
+          <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 12, letterSpacing: "0.28em" }}>FIND EVOKE</p>
+          <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(38px, 5vw, 64px)", fontWeight: 300, letterSpacing: "0.17em" }}>Showrooms & Dealers</h1>
           <div style={{ width: 40, height: 2, background: "#C7B9A6", margin: "16px auto 0" }} />
         </div>
       </div>
@@ -3268,7 +3291,7 @@ const ShowroomsPage = ({ navigate }) => {
                 <div className="relative overflow-hidden"
                   style={{ aspectRatio: "4/3", background: `linear-gradient(${135 + i * 25}deg, #D8CEC0 0%, #C7B9A6 50%, #8F8981 100%)` }}>
                   <div className="absolute top-4 left-4">
-                    <span className="font-body uppercase" style={{ fontSize: 9, letterSpacing: "0.25em", background: "#F5F1EA", color: "#171717", padding: "3px 10px" }}>
+                    <span className="font-body uppercase" style={{ fontSize: 10, letterSpacing: "0.28em", background: "#F5F1EA", color: "#171717", padding: "3px 10px" }}>
                       {s.tag}
                     </span>
                   </div>
@@ -3279,17 +3302,17 @@ const ShowroomsPage = ({ navigate }) => {
 
                 {/* Showroom details */}
                 <div className="p-6">
-                  <p className="font-body uppercase text-warm-grey mb-2" style={{ fontSize: 10, letterSpacing: "0.25em" }}>{s.city}</p>
-                  <h3 className="font-display text-charcoal mb-4" style={{ fontSize: 22, fontWeight: 400, letterSpacing: "0.12em" }}>{s.name}</h3>
+                  <p className="font-body uppercase text-warm-grey mb-2" style={{ fontSize: 11, letterSpacing: "0.28em" }}>{s.city}</p>
+                  <h3 className="font-display text-charcoal mb-4" style={{ fontSize: 26, fontWeight: 400, letterSpacing: "0.14em" }}>{s.name}</h3>
                   <div style={{ width: 24, height: 1, background: "#C7B9A6", marginBottom: 16 }} />
-                  <address className="font-body not-italic text-warm-grey" style={{ fontSize: 13, fontWeight: 300, lineHeight: 1.9 }}>
+                  <address className="font-body not-italic text-warm-grey" style={{ fontSize: 15, fontWeight: 300, lineHeight: 2.0 }}>
                     {s.address.map((line, j) => (
                       <span key={j}>{line}<br /></span>
                     ))}
                   </address>
                   <button onClick={() => navigate("contact")}
                     className="font-body uppercase mt-6 transition-colors duration-200"
-                    style={{ fontSize: 11, letterSpacing: "0.2em", color: "#8F8981", textDecoration: "underline", textUnderlineOffset: 4 }}
+                    style={{ fontSize: 12, letterSpacing: "0.22em", color: "#8F8981", textDecoration: "underline", textUnderlineOffset: 4 }}
                     onMouseEnter={e => e.currentTarget.style.color = "#171717"}
                     onMouseLeave={e => e.currentTarget.style.color = "#8F8981"}>
                     Book an Appointment →
@@ -3303,27 +3326,27 @@ const ShowroomsPage = ({ navigate }) => {
           <div style={{ background: "#0E0E0D", padding: "64px 0" }}>
             <div className="px-8 lg:px-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
-                <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 11, letterSpacing: "0.25em" }}>DEALER NETWORK</p>
-                <h2 className="font-display text-warm-white mb-6" style={{ fontSize: "clamp(26px, 3.5vw, 40px)", fontWeight: 400, letterSpacing: "0.12em", lineHeight: 1.2 }}>
+                <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 12, letterSpacing: "0.28em" }}>DEALER NETWORK</p>
+                <h2 className="font-display text-warm-white mb-6" style={{ fontSize: "clamp(30px, 3.5vw, 46px)", fontWeight: 400, letterSpacing: "0.14em", lineHeight: 1.2 }}>
                   Become an EVOKE Partner
                 </h2>
-                <p className="font-body text-warm-grey mb-8" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.9 }}>
+                <p className="font-body text-warm-grey mb-8" style={{ fontSize: 17, fontWeight: 300, lineHeight: 2.0 }}>
                   Join our growing network of authorised dealers and showroom partners across India and internationally.
                 </p>
                 <button onClick={() => navigate("contact")}
                   className="font-body uppercase transition-all duration-300"
-                  style={{ fontSize: 11, letterSpacing: "0.25em", background: "#F5F1EA", color: "#171717", padding: "14px 36px" }}
+                  style={{ fontSize: 12, letterSpacing: "0.28em", background: "#F5F1EA", color: "#171717", padding: "14px 36px" }}
                   onMouseEnter={e => e.currentTarget.style.background = "#D8CEC0"}
                   onMouseLeave={e => e.currentTarget.style.background = "#F5F1EA"}>
                   Apply to Become a Dealer
                 </button>
               </div>
               <div>
-                <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 10, letterSpacing: "0.25em" }}>DEALER BENEFITS</p>
+                <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 11, letterSpacing: "0.28em" }}>DEALER BENEFITS</p>
                 {dealerBenefits.map((b, i) => (
                   <div key={i} className="flex items-center gap-4 py-3" style={{ borderBottom: "1px solid rgba(167,163,155,0.2)" }}>
                     <VMonogram size={14} color="#C7B9A6" />
-                    <span className="font-body text-warm-white" style={{ fontSize: 13, fontWeight: 300 }}>{b}</span>
+                    <span className="font-body text-warm-white" style={{ fontSize: 15, fontWeight: 300 }}>{b}</span>
                   </div>
                 ))}
               </div>
@@ -3356,15 +3379,15 @@ const AboutPage = ({ navigate }) => {
   ];
 
   return (
-    <div style={{ paddingTop: 72 }}>
+    <div style={{ paddingTop: 80 }}>
       {/* Hero */}
       <div className="relative flex items-center justify-center"
         style={{ height: "60vh", minHeight: 400, background: "linear-gradient(145deg, #D8CEC0 0%, #8F8981 50%, #171717 100%)" }}>
         <div className="absolute inset-0" style={{ background: "rgba(14,14,13,0.5)" }} />
         <div className="relative z-10 text-center px-6" style={{ maxWidth: 720 }}>
           <VMark size={56} className="mx-auto mb-8 text-warm-white" />
-          <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 11, letterSpacing: "0.25em" }}>THE BRAND</p>
-          <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(28px, 5vw, 56px)", fontWeight: 300, letterSpacing: "0.15em", lineHeight: 1.15 }}>
+          <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 12, letterSpacing: "0.28em" }}>THE BRAND</p>
+          <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(34px, 5vw, 64px)", fontWeight: 300, letterSpacing: "0.17em", lineHeight: 1.15 }}>
             Designing Spaces That Inspire Presence
           </h1>
           <div style={{ width: 40, height: 2, background: "#C7B9A6", margin: "24px auto 0" }} />
@@ -3375,17 +3398,17 @@ const AboutPage = ({ navigate }) => {
       <section className="bg-warm-white py-24">
         <div className="px-8 lg:px-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           <div>
-            <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 11, letterSpacing: "0.25em" }}>OUR STORY</p>
-            <h2 className="font-display text-charcoal mb-8" style={{ fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 400, letterSpacing: "0.12em", lineHeight: 1.25 }}>
+            <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 12, letterSpacing: "0.28em" }}>OUR STORY</p>
+            <h2 className="font-display text-charcoal mb-8" style={{ fontSize: "clamp(28px, 3vw, 42px)", fontWeight: 400, letterSpacing: "0.14em", lineHeight: 1.25 }}>
               Founded on a Vision to Elevate Everyday Rituals
             </h2>
-            <p className="font-body text-warm-grey mb-6" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.9 }}>
+            <p className="font-body text-warm-grey mb-6" style={{ fontSize: 17, fontWeight: 300, lineHeight: 2.0 }}>
               EVOKE creates bathroom environments that combine architectural precision, sensory comfort, and enduring quality.
             </p>
-            <p className="font-body text-warm-grey mb-6" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.9 }}>
+            <p className="font-body text-warm-grey mb-6" style={{ fontSize: 17, fontWeight: 300, lineHeight: 2.0 }}>
               Inspired by European design principles and crafted for contemporary living, our collections balance innovation with timeless aesthetics. Every detail is considered — from material selection and engineering to the way light interacts with a space.
             </p>
-            <p className="font-body text-warm-grey" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.9 }}>
+            <p className="font-body text-warm-grey" style={{ fontSize: 17, fontWeight: 300, lineHeight: 2.0 }}>
               Today, EVOKE partners with homeowners, architects, hospitality operators, and developers to deliver complete bathroom solutions across residential, commercial, and hospitality projects.
             </p>
           </div>
@@ -3398,7 +3421,7 @@ const AboutPage = ({ navigate }) => {
             </div>
             <div className="absolute bottom-10 left-10 right-10">
               <div style={{ width: 32, height: 2, background: "#C7B9A6", marginBottom: 16 }} />
-              <p className="font-display text-warm-white" style={{ fontSize: 18, fontWeight: 300, letterSpacing: "0.1em", lineHeight: 1.5, opacity: 0.9 }}>
+              <p className="font-display text-warm-white" style={{ fontSize: 21, fontWeight: 300, letterSpacing: "0.1em", lineHeight: 1.5, opacity: 0.9 }}>
                 "Inspired by European design principles. Crafted for contemporary living."
               </p>
             </div>
@@ -3417,8 +3440,8 @@ const AboutPage = ({ navigate }) => {
                   {v.number}
                 </span>
                 <div style={{ width: 24, height: 1, background: "#C7B9A6", marginBottom: 20 }} />
-                <p className="font-display text-warm-white mb-3" style={{ fontSize: 18, fontWeight: 400, letterSpacing: "0.1em" }}>{v.title}</p>
-                <p className="font-body text-warm-grey" style={{ fontSize: 13, fontWeight: 300, lineHeight: 1.7 }}>{v.desc}</p>
+                <p className="font-display text-warm-white mb-3" style={{ fontSize: 21, fontWeight: 400, letterSpacing: "0.1em" }}>{v.title}</p>
+                <p className="font-body text-warm-grey" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.85 }}>{v.desc}</p>
               </div>
             ))}
           </div>
@@ -3438,8 +3461,8 @@ const AboutPage = ({ navigate }) => {
                 {/* Content */}
                 <div className="flex-1">
                   <div className={`${i % 2 === 0 ? "text-right pr-8" : "text-left pl-8"}`}>
-                    <p className="font-display text-charcoal" style={{ fontSize: 28, fontWeight: 300, letterSpacing: "0.15em" }}>{item.year}</p>
-                    <p className="font-body text-warm-grey mt-1" style={{ fontSize: 13, fontWeight: 300 }}>{item.event}</p>
+                    <p className="font-display text-charcoal" style={{ fontSize: 34, fontWeight: 300, letterSpacing: "0.17em" }}>{item.year}</p>
+                    <p className="font-body text-warm-grey mt-1" style={{ fontSize: 15, fontWeight: 300 }}>{item.event}</p>
                   </div>
                 </div>
 
@@ -3459,23 +3482,23 @@ const AboutPage = ({ navigate }) => {
       {/* Bottom CTA */}
       <section style={{ background: "#D8CEC0", padding: "72px 0" }}>
         <div className="px-8 lg:px-16 text-center">
-          <h2 className="font-display text-charcoal mb-6" style={{ fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: 400, letterSpacing: "0.12em" }}>
+          <h2 className="font-display text-charcoal mb-6" style={{ fontSize: "clamp(28px, 3.5vw, 46px)", fontWeight: 400, letterSpacing: "0.14em" }}>
             Ready to Work Together?
           </h2>
-          <p className="font-body text-warm-grey mb-10 mx-auto" style={{ fontSize: 15, fontWeight: 300, maxWidth: 440, lineHeight: 1.8 }}>
+          <p className="font-body text-warm-grey mb-10 mx-auto" style={{ fontSize: 17, fontWeight: 300, maxWidth: 440, lineHeight: 1.95 }}>
             Whether you're specifying a single bathroom or an entire development, we'd love to hear about your project.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <button onClick={() => navigate("contact")}
               className="font-body uppercase transition-all duration-300"
-              style={{ fontSize: 11, letterSpacing: "0.25em", background: "#171717", color: "#F5F1EA", padding: "14px 36px" }}
+              style={{ fontSize: 12, letterSpacing: "0.28em", background: "#171717", color: "#F5F1EA", padding: "14px 36px" }}
               onMouseEnter={e => e.currentTarget.style.background = "#0E0E0D"}
               onMouseLeave={e => e.currentTarget.style.background = "#171717"}>
               Get in Touch
             </button>
             <button onClick={() => navigate("category", { categoryId: "bath-fittings" })}
               className="font-body uppercase transition-all duration-300"
-              style={{ fontSize: 11, letterSpacing: "0.25em", border: "1px solid #171717", color: "#171717", padding: "14px 36px", background: "transparent" }}
+              style={{ fontSize: 12, letterSpacing: "0.28em", border: "1px solid #171717", color: "#171717", padding: "14px 36px", background: "transparent" }}
               onMouseEnter={e => { e.currentTarget.style.background = "#171717"; e.currentTarget.style.color = "#F5F1EA"; }}
               onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#171717"; }}>
               Explore Products
@@ -3488,22 +3511,22 @@ const AboutPage = ({ navigate }) => {
 };
 
 const StubPage = ({ title, eyebrow, navigate }) => (
-  <div style={{ paddingTop: 72 }}>
+  <div style={{ paddingTop: 80 }}>
     <div className="relative flex items-center justify-center" style={{ height: "40vh", background: "linear-gradient(145deg, #D8CEC0, #8F8981)" }}>
       <div className="absolute inset-0" style={{ background: "rgba(14,14,13,0.45)" }} />
       <div className="relative z-10 text-center">
-        {eyebrow && <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 11, letterSpacing: "0.25em" }}>{eyebrow}</p>}
-        <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 300, letterSpacing: "0.15em" }}>{title}</h1>
+        {eyebrow && <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 12, letterSpacing: "0.28em" }}>{eyebrow}</p>}
+        <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(38px, 5vw, 64px)", fontWeight: 300, letterSpacing: "0.17em" }}>{title}</h1>
         <div style={{ width: 40, height: 2, background: "#C7B9A6", margin: "16px auto 0" }} />
       </div>
     </div>
     <section className="bg-warm-white py-24">
       <div className="px-8 lg:px-16 text-center">
         <VMark size={48} className="mx-auto mb-8 text-charcoal" />
-        <p className="font-body text-warm-grey" style={{ fontSize: 15, fontWeight: 300 }}>This section is in development.</p>
+        <p className="font-body text-warm-grey" style={{ fontSize: 17, fontWeight: 300 }}>This section is in development.</p>
         <button onClick={() => navigate("contact")}
           className="font-body uppercase mt-8 inline-block transition-all duration-300"
-          style={{ fontSize: 11, letterSpacing: "0.25em", background: "#171717", color: "#F5F1EA", padding: "14px 36px" }}>
+          style={{ fontSize: 12, letterSpacing: "0.28em", background: "#171717", color: "#F5F1EA", padding: "14px 36px" }}>
           Contact Us
         </button>
       </div>
@@ -3822,7 +3845,7 @@ const adminInputStyle = (err) => ({
 const adminLabelStyle = {
   fontSize: 10, letterSpacing: "0.2em", color: "#6B6B6B",
   display: "block", marginBottom: 4, textTransform: "uppercase",
-  fontFamily: "Inter, sans-serif",
+  fontFamily: "DM Sans, system-ui, sans-serif",
 };
 
 const AdminToggle = ({ label, checked, onChange, helper }) => (
@@ -4680,7 +4703,7 @@ const AdminCollections = ({ collections, onSave, onDelete: onDeleteCollection, p
     if (viewId === id) setViewId(null);
   };
 
-  const inputSt = { border: "1px solid #E2E2E2", padding: "8px 10px", fontSize: 13, outline: "none", width: "100%", fontFamily: "Inter, sans-serif" };
+  const inputSt = { border: "1px solid #E2E2E2", padding: "8px 10px", fontSize: 13, outline: "none", width: "100%", fontFamily: "DM Sans, system-ui, sans-serif" };
 
   return (
     <div className="px-8 py-8">
@@ -4856,7 +4879,7 @@ const AdminFinishes = ({ finishes, onSave: onSaveFinish, onDelete: onDelFinish, 
   const [editData, setEditData] = useState({});
   const [deleteId, setDeleteId] = useState(null);
 
-  const inpSt = { border: "1px solid #E2E2E2", padding: "6px 10px", fontSize: 13, outline: "none", fontFamily: "Inter, sans-serif" };
+  const inpSt = { border: "1px solid #E2E2E2", padding: "6px 10px", fontSize: 13, outline: "none", fontFamily: "DM Sans, system-ui, sans-serif" };
 
   return (
     <div className="px-8 py-8">
@@ -5016,6 +5039,7 @@ export default function App() {
 
   const [loading, setLoading] = useState(true);
   const [toast,   setToast]   = useState(null);
+
 
   // Auth — localStorage only (no server session needed for anon key pattern)
   const [adminAuthenticated, setAdminAuthenticated] = useState(
