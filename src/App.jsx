@@ -2,6 +2,7 @@
 // Complete SPA: Public Site + Admin Panel
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate as useRRNavigate, useLocation, Routes, Route, Navigate, useParams, useSearchParams } from "react-router-dom";
 import {
   fetchProducts, saveProduct, deleteProduct,
   fetchCollections, saveCollection, deleteCollection,
@@ -157,18 +158,18 @@ const PRODUCTS_DEFAULT = [
     published: true, featured: true, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A study in geometric restraint, the Elara mixer brings Milanese precision to the wash basin. Crafted from solid brass with a ceramic disc cartridge.",
-    fullDescription: "The Elara Wall-Mounted Basin Mixer represents the finest expression of the Milano Collection — form reduced to its essential geometry, function elevated to art.",
+    fullDescription: "The Elara Wall-Mounted Basin Mixer represents the finest expression of the Milano Collection: form reduced to its essential geometry, function elevated to art.",
     finishes: ["chrome", "brushed-nickel", "matte-black"],
     material: "Solid brass body, ceramic disc cartridge",
     additionalMaterial: "Stainless steel braided hose",
-    features: ["Solid brass construction", "Ceramic disc cartridge — drip-free lifetime", "Compatible with all EVOKE Milano sanitaryware", "Available in 5 architectural finishes", "WRAS approved"],
+    features: ["Solid brass construction", "Ceramic disc cartridge: drip-free lifetime", "Compatible with all EVOKE Milano sanitaryware", "Available in 5 architectural finishes", "WRAS approved"],
     specifications: [{ key: "Cartridge Type", value: "Ceramic disc" }, { key: "Water Pressure", value: "0.5–5.0 bar" }, { key: "Flow Rate", value: "5 L/min at 3 bar" }, { key: "Certification", value: "WRAS, CE" }],
     dimensions: { height: 192, width: 44, depth: 176, spoutReach: 152, spoutHeight: 110, weight: 1.2 },
     tradePrice: 18500, mrp: 24000, pricingMode: "on-request", pricingNote: "",
     sku: "VH-BF-001-CHR", tags: ["basin mixer", "wall mounted", "milano"],
     images: [imgVHBF001], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["VH-BF-002", "VH-SS-001"],
-    metaTitle: "Elara Wall-Mounted Basin Mixer — EVOKE Milano",
+    metaTitle: "Elara Wall-Mounted Basin Mixer | EVOKE Milano",
     metaDescription: "Specification-grade wall-mounted basin mixer from the EVOKE Milano Collection.",
   },
   {
@@ -188,7 +189,7 @@ const PRODUCTS_DEFAULT = [
     sku: "VH-BF-002-BN", tags: ["bath mixer", "deck mounted", "como"],
     images: [imgVHBF002], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["VH-BF-001", "VH-WB-001"],
-    metaTitle: "Palazzo Deck-Mounted Bath Mixer — EVOKE Como", metaDescription: "",
+    metaTitle: "Palazzo Deck-Mounted Bath Mixer | EVOKE Como", metaDescription: "",
   },
   {
     id: "VH-SS-001", name: "Cielo Rain Showerhead 300mm",
@@ -207,7 +208,7 @@ const PRODUCTS_DEFAULT = [
     sku: "VH-SS-001-CHR", tags: ["rain shower", "overhead", "milano"],
     images: [imgVHSS001], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["VH-BF-001", "VH-SS-002"],
-    metaTitle: "Cielo Rain Showerhead 300mm — EVOKE Milano", metaDescription: "",
+    metaTitle: "Cielo Rain Showerhead 300mm | EVOKE Milano", metaDescription: "",
   },
   {
     id: "VH-SS-002", name: "Terma Thermostatic Shower Column",
@@ -226,7 +227,7 @@ const PRODUCTS_DEFAULT = [
     sku: "VH-SS-002-MB", tags: ["thermostatic", "shower column", "verona"],
     images: [imgVHSS002], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["VH-SS-001", "VH-BF-001"],
-    metaTitle: "Terma Thermostatic Shower Column — EVOKE Verona", metaDescription: "",
+    metaTitle: "Terma Thermostatic Shower Column | EVOKE Verona", metaDescription: "",
   },
   {
     id: "VH-WB-001", name: "Lago Vessel Basin",
@@ -245,7 +246,7 @@ const PRODUCTS_DEFAULT = [
     sku: "VH-WB-001-MW", tags: ["vessel basin", "ceramic", "como"],
     images: [imgVHWB001], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["VH-BF-002", "VH-LV-001"],
-    metaTitle: "Lago Vessel Basin — EVOKE Como", metaDescription: "",
+    metaTitle: "Lago Vessel Basin | EVOKE Como", metaDescription: "",
   },
   {
     id: "VH-LV-001", name: "Stanza Wall-Hung Vanity 1200mm",
@@ -253,7 +254,7 @@ const PRODUCTS_DEFAULT = [
     published: true, featured: false, stockStatus: "made-to-order",
     projectAvailability: true, retailAvailability: true,
     description: "The Stanza vanity unit in American oak veneer with a floating wall-hung profile. Softclose drawers, integrated basin cut-out, matte black hardware.",
-    fullDescription: "The Stanza 1200mm vanity represents EVOKE's specification furniture range — architectural joinery at bathroom scale, built to the same tolerances demanded of structural elements.",
+    fullDescription: "The Stanza 1200mm vanity represents EVOKE's specification furniture range: architectural joinery at bathroom scale, built to the same tolerances demanded of structural elements.",
     finishes: ["matte-black", "brushed-nickel"],
     material: "American oak veneer over MDF carcass, solid oak drawer fronts",
     additionalMaterial: "Matte black powder-coated hardware",
@@ -264,7 +265,7 @@ const PRODUCTS_DEFAULT = [
     sku: "VH-LV-001-OAK", tags: ["vanity", "wall-hung", "oak", "verona"],
     images: [imgVHLV001], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["VH-WB-001", "VH-BF-002"],
-    metaTitle: "Stanza Wall-Hung Vanity 1200mm — EVOKE Verona", metaDescription: "",
+    metaTitle: "Stanza Wall-Hung Vanity 1200mm | EVOKE Verona", metaDescription: "",
   },
   // ── Mirrors ────────────────────────────────────────────────
   {
@@ -284,7 +285,7 @@ const PRODUCTS_DEFAULT = [
     sku: "EV-MR-001-BN", tags: ["smart mirror", "LED mirror", "illuminated", "anti-fog"],
     images: [imgEVMR001], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["EV-MR-002", "VH-LV-001"],
-    metaTitle: "Lumina LED Smart Mirror — EVOKE Milano", metaDescription: "Integrated LED smart mirror with anti-fog and touch dimming from EVOKE.",
+    metaTitle: "Lumina LED Smart Mirror | EVOKE Milano", metaDescription: "Integrated LED smart mirror with anti-fog and touch dimming from EVOKE.",
   },
   {
     id: "EV-MR-002", name: "Arco Frameless Mirror",
@@ -303,7 +304,7 @@ const PRODUCTS_DEFAULT = [
     sku: "EV-MR-002-PE", tags: ["frameless mirror", "architectural", "como"],
     images: [imgEVMR002], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["EV-MR-001", "VH-WB-001"],
-    metaTitle: "Arco Frameless Mirror — EVOKE Como", metaDescription: "Polished-edge frameless mirror with concealed fixings from EVOKE.",
+    metaTitle: "Arco Frameless Mirror | EVOKE Como", metaDescription: "Polished-edge frameless mirror with concealed fixings from EVOKE.",
   },
   // ── Sanitaryware ─────────────────────────────────────────
   {
@@ -316,14 +317,14 @@ const PRODUCTS_DEFAULT = [
     finishes: ["matte-white", "matte-black"],
     material: "Vitreous china, high-gloss glaze",
     additionalMaterial: "Soft-close PP seat, stainless fixings",
-    features: ["Rimless flush technology", "Dual flush 3/6L", "Whisper-close soft seat", "Wall-hung — floor clearance for easy cleaning", "Verona Collection compatible"],
+    features: ["Rimless flush technology", "Dual flush 3/6L", "Whisper-close soft seat", "Wall-hung: floor clearance for easy cleaning", "Verona Collection compatible"],
     specifications: [{ key: "Flush", value: "Dual 3/6L" }, { key: "Material", value: "Vitreous china" }, { key: "Seat", value: "Soft-close PP" }, { key: "Fixing Height", value: "400–430mm AFF" }],
     dimensions: { height: 350, width: 360, depth: 520, weight: 22 },
     tradePrice: 32000, mrp: 42000, pricingMode: "on-request", pricingNote: "",
     sku: "EV-SW-001-MW", tags: ["wall hung WC", "rimless", "sanitaryware", "verona"],
     images: [imgEVSW001], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["EV-SW-002", "EV-AC-001"],
-    metaTitle: "Forma Wall-Hung WC — EVOKE Verona", metaDescription: "Rimless wall-hung WC with dual flush and whisper-close seat from EVOKE.",
+    metaTitle: "Forma Wall-Hung WC | EVOKE Verona", metaDescription: "Rimless wall-hung WC with dual flush and whisper-close seat from EVOKE.",
   },
   {
     id: "EV-SW-002", name: "Alto Concealed Cistern",
@@ -342,7 +343,7 @@ const PRODUCTS_DEFAULT = [
     sku: "EV-SW-002-CHR", tags: ["concealed cistern", "in-wall frame", "sanitaryware"],
     images: [], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["EV-SW-001"],
-    metaTitle: "Alto Concealed Cistern — EVOKE", metaDescription: "In-wall concealed cistern frame with pneumatic flush for wall-hung WC installations.",
+    metaTitle: "Alto Concealed Cistern | EVOKE", metaDescription: "In-wall concealed cistern frame with pneumatic flush for wall-hung WC installations.",
   },
   // ── Bathroom Lighting ─────────────────────────────────────
   {
@@ -362,7 +363,7 @@ const PRODUCTS_DEFAULT = [
     sku: "EV-BL-001-BN", tags: ["mirror light", "LED bar", "task lighting", "bathroom"],
     images: [imgEVBL001], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["EV-BL-002", "EV-MR-001"],
-    metaTitle: "Lume Mirror Light Bar — EVOKE Milano", metaDescription: "High-CRI LED mirror light bar, IP44 rated, dimmable. From EVOKE.",
+    metaTitle: "Lume Mirror Light Bar | EVOKE Milano", metaDescription: "High-CRI LED mirror light bar, IP44 rated, dimmable. From EVOKE.",
   },
   {
     id: "EV-BL-002", name: "Aureo Recessed Ceiling Light",
@@ -381,7 +382,7 @@ const PRODUCTS_DEFAULT = [
     sku: "EV-BL-002-BN", tags: ["recessed light", "downlight", "ceiling", "IP65"],
     images: [imgEVBL002], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["EV-BL-001"],
-    metaTitle: "Aureo Recessed Ceiling Light — EVOKE Como", metaDescription: "IP65 anti-glare recessed downlight for wet zone ceilings from EVOKE.",
+    metaTitle: "Aureo Recessed Ceiling Light | EVOKE Como", metaDescription: "IP65 anti-glare recessed downlight for wet zone ceilings from EVOKE.",
   },
   // ── Accessories ───────────────────────────────────────────
   {
@@ -394,14 +395,14 @@ const PRODUCTS_DEFAULT = [
     finishes: ["brushed-nickel", "chrome", "matte-black"],
     material: "Solid brass, PVD finish",
     additionalMaterial: "Concealed wall fixings, E-monogram end caps",
-    features: ["Solid brass construction", "PVD finish — tarnish resistant", "Concealed fixing system", "E-monogram end caps", "Verona Collection compatible"],
+    features: ["Solid brass construction", "PVD finish: tarnish resistant", "Concealed fixing system", "E-monogram end caps", "Verona Collection compatible"],
     specifications: [{ key: "Bar Diameter", value: "Ø22mm" }, { key: "Projection", value: "110mm" }, { key: "Finish", value: "PVD Brushed Nickel" }, { key: "Fixing", value: "Concealed wall plate" }],
     dimensions: { height: 22, width: 600, depth: 110, weight: 1.2 },
     tradePrice: 8500, mrp: 11500, pricingMode: "on-request", pricingNote: "",
     sku: "EV-AC-001-BN", tags: ["towel rail", "towel bar", "accessory", "brass"],
     images: [imgEVAC001], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["EV-AC-002", "EV-SW-001"],
-    metaTitle: "Sera Towel Rail — EVOKE Verona", metaDescription: "Solid brass double towel rail with concealed fixings and E-monogram end caps from EVOKE.",
+    metaTitle: "Sera Towel Rail | EVOKE Verona", metaDescription: "Solid brass double towel rail with concealed fixings and E-monogram end caps from EVOKE.",
   },
   {
     id: "EV-AC-002", name: "Nera Robe Hook Set",
@@ -409,7 +410,7 @@ const PRODUCTS_DEFAULT = [
     published: true, featured: false, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A set of two double robe hooks in solid brass with a fine E-monogram impression at the base. Concealed fixing system.",
-    fullDescription: "The Nera Robe Hook Set maintains the same architectural discipline as the Sera Towel Rail. Supplied as a pair, each hook carries a discreet E-monogram impression — the defining detail of the EVOKE accessory range.",
+    fullDescription: "The Nera Robe Hook Set maintains the same architectural discipline as the Sera Towel Rail. Supplied as a pair, each hook carries a discreet E-monogram impression: the defining detail of the EVOKE accessory range.",
     finishes: ["brushed-nickel", "chrome", "matte-black"],
     material: "Solid brass, PVD finish",
     additionalMaterial: "Concealed anchor plate, stainless fixings",
@@ -420,7 +421,7 @@ const PRODUCTS_DEFAULT = [
     sku: "EV-AC-002-BN", tags: ["robe hook", "hook", "accessory", "brass"],
     images: [imgEVAC002], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["EV-AC-001"],
-    metaTitle: "Nera Robe Hook Set — EVOKE Verona", metaDescription: "Solid brass double robe hook set with E-monogram impression from EVOKE.",
+    metaTitle: "Nera Robe Hook Set | EVOKE Verona", metaDescription: "Solid brass double robe hook set with E-monogram impression from EVOKE.",
   },
 
   // ── Bath Fittings — additional ───────────────────────────────
@@ -430,7 +431,7 @@ const PRODUCTS_DEFAULT = [
     published: true, featured: false, stockStatus: "made-to-order",
     projectAvailability: true, retailAvailability: true,
     description: "A fully concealed wall-mounted basin mixer from the Verona Collection. Recessed body with a minimal exposed trim plate and single-lever control in matte black.",
-    fullDescription: "The Vela Concealed Basin Mixer represents the ultimate expression of architectural restraint — the fitting disappears into the wall, leaving only a flush trim plate and lever as evidence of the infrastructure behind.",
+    fullDescription: "The Vela Concealed Basin Mixer represents the ultimate expression of architectural restraint: the fitting disappears into the wall, leaving only a flush trim plate and lever as evidence of the infrastructure behind.",
     finishes: ["matte-black", "satin-black"],
     material: "Solid brass body, ceramic disc cartridge",
     additionalMaterial: "Flush trim plate, concealed rough-in valve",
@@ -441,7 +442,7 @@ const PRODUCTS_DEFAULT = [
     sku: "VH-BF-003-MB", tags: ["concealed mixer", "basin mixer", "recessed", "verona"],
     images: [imgVHBF003], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["VH-BF-001", "VH-WB-001"],
-    metaTitle: "Vela Concealed Basin Mixer — EVOKE Verona", metaDescription: "Fully concealed wall-mounted basin mixer with PVD matte black finish from EVOKE.",
+    metaTitle: "Vela Concealed Basin Mixer | EVOKE Verona", metaDescription: "Fully concealed wall-mounted basin mixer with PVD matte black finish from EVOKE.",
   },
   {
     id: "VH-BF-004", name: "Sento Sensor Faucet",
@@ -460,7 +461,7 @@ const PRODUCTS_DEFAULT = [
     sku: "VH-BF-004-CHR", tags: ["sensor faucet", "touchless", "hospitality", "milano"],
     images: [imgVHBF004], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["VH-BF-001", "VH-SS-001"],
-    metaTitle: "Sento Sensor Faucet — EVOKE Milano", metaDescription: "Touchless infrared sensor faucet for hospitality environments from EVOKE.",
+    metaTitle: "Sento Sensor Faucet | EVOKE Milano", metaDescription: "Touchless infrared sensor faucet for hospitality environments from EVOKE.",
   },
 
   // ── Shower Systems — additional ──────────────────────────────
@@ -481,7 +482,7 @@ const PRODUCTS_DEFAULT = [
     sku: "VH-SS-003-BN", tags: ["handheld shower", "shower handset", "como"],
     images: [imgVHSS003], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["VH-SS-001", "VH-BF-002"],
-    metaTitle: "Bruma Handheld Shower 120mm — EVOKE Como", metaDescription: "3-function handheld shower handset with anti-limescale nozzles from EVOKE.",
+    metaTitle: "Bruma Handheld Shower 120mm | EVOKE Como", metaDescription: "3-function handheld shower handset with anti-limescale nozzles from EVOKE.",
   },
   {
     id: "VH-SS-004", name: "Cascata Thermostatic Shower System",
@@ -489,7 +490,7 @@ const PRODUCTS_DEFAULT = [
     published: true, featured: true, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A wall-mounted two-outlet thermostatic shower system with a 250mm overhead rain plate and handheld outlet. Precise temperature memory and anti-scald lock.",
-    fullDescription: "The Cascata Thermostatic System delivers the reliability demanded by five-star hospitality alongside the aesthetic precision of the Milano Collection. Temperature is set once and held — every shower begins at the same perfect degree.",
+    fullDescription: "The Cascata Thermostatic System delivers the reliability demanded by five-star hospitality alongside the aesthetic precision of the Milano Collection. Temperature is set once and held: every shower begins at the same perfect degree.",
     finishes: ["chrome", "matte-black"],
     material: "Solid brass thermostatic valve, stainless trim",
     additionalMaterial: "250mm rain plate, handheld handset, 1.5m hose",
@@ -500,7 +501,7 @@ const PRODUCTS_DEFAULT = [
     sku: "VH-SS-004-CHR", tags: ["thermostatic shower", "shower system", "milano"],
     images: [imgVHSS004], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["VH-SS-001", "VH-SS-002"],
-    metaTitle: "Cascata Thermostatic Shower System — EVOKE Milano", metaDescription: "Two-outlet wall-mounted thermostatic shower system with rain plate from EVOKE.",
+    metaTitle: "Cascata Thermostatic Shower System | EVOKE Milano", metaDescription: "Two-outlet wall-mounted thermostatic shower system with rain plate from EVOKE.",
   },
 
   // ── Wash Basins — additional ─────────────────────────────────
@@ -514,14 +515,14 @@ const PRODUCTS_DEFAULT = [
     finishes: ["matte-black"],
     material: "Cast mineral composite, matte stone texture",
     additionalMaterial: "Waste and overflow fitting included",
-    features: ["Cast mineral composite — chip and stain resistant", "Integrated low-profile overflow", "Pre-drilled single tap hole", "Compatible with all EVOKE deck-mounted mixers", "Verona Collection compatible"],
+    features: ["Cast mineral composite: chip and stain resistant", "Integrated low-profile overflow", "Pre-drilled single tap hole", "Compatible with all EVOKE deck-mounted mixers", "Verona Collection compatible"],
     specifications: [{ key: "Material", value: "Mineral composite" }, { key: "Surface", value: "Matte stone texture" }, { key: "Overflow", value: "Integrated slot" }, { key: "Tap Hole", value: "Single Ø35mm" }],
     dimensions: { height: 120, width: 520, depth: 380, spoutReach: 0, spoutHeight: 0, weight: 11.5 },
     tradePrice: 28000, mrp: 36000, pricingMode: "on-request", pricingNote: "",
     sku: "VH-WB-002-MS", tags: ["counter top basin", "stone basin", "mineral composite", "verona"],
     images: [imgVHWB002], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["VH-WB-001", "VH-BF-002"],
-    metaTitle: "Pietra Counter-Top Basin — EVOKE Verona", metaDescription: "Cast mineral composite counter-top basin with matte stone texture from EVOKE.",
+    metaTitle: "Pietra Counter-Top Basin | EVOKE Verona", metaDescription: "Cast mineral composite counter-top basin with matte stone texture from EVOKE.",
   },
   {
     id: "VH-WB-003", name: "Sospeso Wall-Hung Basin",
@@ -529,7 +530,7 @@ const PRODUCTS_DEFAULT = [
     published: true, featured: false, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A cantilevered wall-hung basin in high-gloss vitreous china. Slim 145mm depth profile, concealed wall brackets, and a single tap hole centred at the rear.",
-    fullDescription: "The Sospeso Wall-Hung Basin creates the illusion of floating at the wall plane — its slim depth and concealed bracket system allow the floor to read as uninterrupted. Specified across premium residential and boutique hospitality projects.",
+    fullDescription: "The Sospeso Wall-Hung Basin creates the illusion of floating at the wall plane: its slim depth and concealed bracket system allow the floor to read as uninterrupted. Specified across premium residential and boutique hospitality projects.",
     finishes: ["chrome"],
     material: "Vitreous china, high-gloss white glaze",
     additionalMaterial: "Concealed wall bracket set, click-clack waste",
@@ -540,7 +541,7 @@ const PRODUCTS_DEFAULT = [
     sku: "VH-WB-003-W", tags: ["wall hung basin", "floating basin", "vitreous china", "milano"],
     images: [imgVHWB003], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["VH-WB-001", "VH-BF-001"],
-    metaTitle: "Sospeso Wall-Hung Basin — EVOKE Milano", metaDescription: "Slim 145mm wall-hung basin in high-gloss vitreous china from EVOKE.",
+    metaTitle: "Sospeso Wall-Hung Basin | EVOKE Milano", metaDescription: "Slim 145mm wall-hung basin in high-gloss vitreous china from EVOKE.",
   },
 
   // ── Luxury Vanities — additional ─────────────────────────────
@@ -561,7 +562,7 @@ const PRODUCTS_DEFAULT = [
     sku: "VH-LV-002-OAK", tags: ["freestanding vanity", "oak vanity", "storage column", "como"],
     images: [imgVHLV002], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["VH-LV-001", "VH-WB-001"],
-    metaTitle: "Torre Freestanding Vanity 900mm — EVOKE Como", metaDescription: "900mm freestanding oak vanity with integrated storage column from EVOKE.",
+    metaTitle: "Torre Freestanding Vanity 900mm | EVOKE Como", metaDescription: "900mm freestanding oak vanity with integrated storage column from EVOKE.",
   },
   {
     id: "VH-LV-003", name: "Doppio Double Vanity 1500mm",
@@ -580,7 +581,7 @@ const PRODUCTS_DEFAULT = [
     sku: "VH-LV-003-MB", tags: ["double vanity", "his and hers", "smoked oak", "milano"],
     images: [imgVHLV003], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["VH-LV-001", "VH-WB-001"],
-    metaTitle: "Doppio Double Vanity 1500mm — EVOKE Milano", metaDescription: "1500mm wall-hung double vanity in smoked oak for his-and-hers specification from EVOKE.",
+    metaTitle: "Doppio Double Vanity 1500mm | EVOKE Milano", metaDescription: "1500mm wall-hung double vanity in smoked oak for his-and-hers specification from EVOKE.",
   },
 
   // ── Mirrors — additional ─────────────────────────────────────
@@ -601,7 +602,7 @@ const PRODUCTS_DEFAULT = [
     sku: "EV-MR-003-MB", tags: ["framed mirror", "architectural", "slim frame", "verona"],
     images: [imgEVMR003], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["EV-MR-001", "EV-MR-002"],
-    metaTitle: "Specchio Framed Mirror — EVOKE Verona", metaDescription: "Slim 12mm square-profile framed mirror in matte black or brushed nickel from EVOKE.",
+    metaTitle: "Specchio Framed Mirror | EVOKE Verona", metaDescription: "Slim 12mm square-profile framed mirror in matte black or brushed nickel from EVOKE.",
   },
   {
     id: "EV-MR-004", name: "Lente Shaving Mirror",
@@ -620,7 +621,7 @@ const PRODUCTS_DEFAULT = [
     sku: "EV-MR-004-BN", tags: ["shaving mirror", "magnifying mirror", "LED mirror", "como"],
     images: [imgEVMR004], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["EV-MR-001", "VH-LV-001"],
-    metaTitle: "Lente Shaving Mirror — EVOKE Como", metaDescription: "5× magnification shaving mirror with LED surround and articulated arm from EVOKE.",
+    metaTitle: "Lente Shaving Mirror | EVOKE Como", metaDescription: "5× magnification shaving mirror with LED surround and articulated arm from EVOKE.",
   },
 
   // ── Sanitaryware — additional ────────────────────────────────
@@ -630,7 +631,7 @@ const PRODUCTS_DEFAULT = [
     published: true, featured: false, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A close-coupled WC with an integrated cistern in high-gloss vitreous china. Rimless bowl, dual-flush push button, and a soft-close quick-release seat.",
-    fullDescription: "The Puro Close-Coupled WC achieves the impossible balance — a classic integrated form that feels entirely contemporary. Its flush curves and brilliant white glaze make it the natural centrepiece of Como Collection bathrooms.",
+    fullDescription: "The Puro Close-Coupled WC achieves the impossible balance: a classic integrated form that feels entirely contemporary. Its flush curves and brilliant white glaze make it the natural centrepiece of Como Collection bathrooms.",
     finishes: ["chrome"],
     material: "Vitreous china, high-gloss white",
     additionalMaterial: "Soft-close quick-release seat, chrome push-button",
@@ -641,7 +642,7 @@ const PRODUCTS_DEFAULT = [
     sku: "EV-SW-003-W", tags: ["close coupled WC", "toilet", "rimless", "como"],
     images: [], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["EV-SW-001", "EV-SW-002"],
-    metaTitle: "Puro Close-Coupled WC — EVOKE Como", metaDescription: "Rimless close-coupled WC with soft-close seat from EVOKE.",
+    metaTitle: "Puro Close-Coupled WC | EVOKE Como", metaDescription: "Rimless close-coupled WC with soft-close seat from EVOKE.",
   },
   {
     id: "EV-SW-004", name: "Fonte Wall-Hung Bidet",
@@ -649,7 +650,7 @@ const PRODUCTS_DEFAULT = [
     published: true, featured: false, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A wall-hung bidet in high-gloss vitreous china. Concealed trap, single tap hole, and an overflow to the front. Pairs with the Elara mixer series.",
-    fullDescription: "The Fonte Wall-Hung Bidet brings the Italian hygiene tradition into the Milano Collection's geometric vocabulary. Suspended at wall height, it creates the same visual lightness as the Sospeso basin — the floor reads as continuous.",
+    fullDescription: "The Fonte Wall-Hung Bidet brings the Italian hygiene tradition into the Milano Collection's geometric vocabulary. Suspended at wall height, it creates the same visual lightness as the Sospeso basin: the floor reads as continuous.",
     finishes: ["chrome"],
     material: "Vitreous china, high-gloss white",
     additionalMaterial: "Concealed waste, wall fixings included",
@@ -660,7 +661,7 @@ const PRODUCTS_DEFAULT = [
     sku: "EV-SW-004-W", tags: ["bidet", "wall hung bidet", "sanitaryware", "milano"],
     images: [], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["EV-SW-001", "VH-BF-001"],
-    metaTitle: "Fonte Wall-Hung Bidet — EVOKE Milano", metaDescription: "Wall-hung bidet in high-gloss vitreous china from EVOKE.",
+    metaTitle: "Fonte Wall-Hung Bidet | EVOKE Milano", metaDescription: "Wall-hung bidet in high-gloss vitreous china from EVOKE.",
   },
 
   // ── Bathroom Lighting — additional ───────────────────────────
@@ -670,18 +671,18 @@ const PRODUCTS_DEFAULT = [
     published: true, featured: false, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A surface-mounted architectural ceiling fixture in die-cast aluminium. IP44 rated, 24W, opal diffuser for even shadow-free illumination across the full bathroom plane.",
-    fullDescription: "The Volta Ceiling Fixture provides the architectural backbone of the Verona Collection's lighting palette. Circular and minimal, it delivers uniform ambient illumination from a single high-efficacy LED module — no visible lamp, no hotspots.",
+    fullDescription: "The Volta Ceiling Fixture provides the architectural backbone of the Verona Collection's lighting palette. Circular and minimal, it delivers uniform ambient illumination from a single high-efficacy LED module: no visible lamp, no hotspots.",
     finishes: ["matte-black", "brushed-nickel"],
     material: "Die-cast aluminium housing, opal PMMA diffuser",
     additionalMaterial: "24W integrated LED module, IP44 driver",
-    features: ["IP44 splash rated", "Opal diffuser — shadow-free output", "24W high-efficacy LED", "CRI 90+", "Dimmable TRIAC compatible"],
+    features: ["IP44 splash rated", "Opal diffuser: shadow-free output", "24W high-efficacy LED", "CRI 90+", "Dimmable TRIAC compatible"],
     specifications: [{ key: "IP Rating", value: "IP44" }, { key: "Power", value: "24W" }, { key: "Diameter", value: "Ø280mm" }, { key: "Colour Temp", value: "2700K / 3000K" }],
     dimensions: { height: 80, width: 280, depth: 280, weight: 1.6 },
     tradePrice: 16000, mrp: 21000, pricingMode: "on-request", pricingNote: "",
     sku: "EV-BL-003-MB", tags: ["ceiling light", "surface mounted", "IP44", "verona"],
     images: [], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["EV-BL-001", "EV-BL-002"],
-    metaTitle: "Volta Ceiling Fixture — EVOKE Verona", metaDescription: "Surface-mounted architectural ceiling fixture, IP44, 24W opal diffuser from EVOKE.",
+    metaTitle: "Volta Ceiling Fixture | EVOKE Verona", metaDescription: "Surface-mounted architectural ceiling fixture, IP44, 24W opal diffuser from EVOKE.",
   },
   {
     id: "EV-BL-004", name: "Calda Heated Lamp",
@@ -690,7 +691,7 @@ const PRODUCTS_DEFAULT = [
     published: true, featured: false, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A ceiling-mounted infrared heated lamp providing both warmth and ambient illumination. 1200W heating element, 25W ambient lamp, and a pull-cord switch.",
-    fullDescription: "The Calda Heated Lamp brings the spa experience into the domestic bathroom. Its infrared element delivers instant radiant warmth to 3–4 sqm, while the ambient lamp provides soft, even illumination — all from a single, elegant ceiling fixture.",
+    fullDescription: "The Calda Heated Lamp brings the spa experience into the domestic bathroom. Its infrared element delivers instant radiant warmth to 3–4 sqm, while the ambient lamp provides soft, even illumination: all from a single, elegant ceiling fixture.",
     finishes: ["chrome", "brushed-nickel"],
     material: "Polished aluminium reflector, chrome trim ring",
     additionalMaterial: "1200W infrared element, 25W ambient bulb, pull cord",
@@ -701,7 +702,7 @@ const PRODUCTS_DEFAULT = [
     sku: "EV-BL-004-CHR", tags: ["heated lamp", "infrared", "bathroom heating", "como"],
     images: [], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["EV-BL-003", "EV-BL-001"],
-    metaTitle: "Calda Heated Lamp — EVOKE Como", metaDescription: "Infrared heated ceiling lamp with ambient illumination, IP44, from EVOKE.",
+    metaTitle: "Calda Heated Lamp | EVOKE Como", metaDescription: "Infrared heated ceiling lamp with ambient illumination, IP44, from EVOKE.",
   },
 
   // ── Accessories — additional ──────────────────────────────────
@@ -711,7 +712,7 @@ const PRODUCTS_DEFAULT = [
     published: true, featured: false, stockStatus: "in-stock",
     projectAvailability: true, retailAvailability: true,
     description: "A wall-mounted soap or lotion dispenser in solid brass with a 300ml capacity. E-monogram pump head, concealed fixing plate, and a satin-smooth pump action.",
-    fullDescription: "The Deco Soap Dispenser completes the EVOKE accessory palette. Its solid brass body and E-monogrammed pump head carry the same material and dimensional discipline as the Sera Towel Rail — delivering a unified accessory language across the space.",
+    fullDescription: "The Deco Soap Dispenser completes the EVOKE accessory palette. Its solid brass body and E-monogrammed pump head carry the same material and dimensional discipline as the Sera Towel Rail: delivering a unified accessory language across the space.",
     finishes: ["brushed-nickel", "matte-black"],
     material: "Solid brass body and pump, PVD finish",
     additionalMaterial: "Concealed fixing plate, 300ml ABS reservoir",
@@ -722,7 +723,7 @@ const PRODUCTS_DEFAULT = [
     sku: "EV-AC-003-BN", tags: ["soap dispenser", "lotion dispenser", "accessory", "brass"],
     images: [], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["EV-AC-001", "EV-AC-002"],
-    metaTitle: "Deco Soap Dispenser — EVOKE Milano", metaDescription: "Wall-mounted solid brass soap dispenser with E-monogram pump head from EVOKE.",
+    metaTitle: "Deco Soap Dispenser | EVOKE Milano", metaDescription: "Wall-mounted solid brass soap dispenser with E-monogram pump head from EVOKE.",
   },
   {
     id: "EV-AC-004", name: "Asse Toilet Roll Holder",
@@ -734,14 +735,14 @@ const PRODUCTS_DEFAULT = [
     finishes: ["matte-black", "chrome"],
     material: "Solid brass, PVD finish",
     additionalMaterial: "Concealed anchor plate, stainless fixings",
-    features: ["Solid brass construction", "Sprung arm — holds roll securely", "Square back plate — aligns with Sera Rail", "Concealed fixing system", "Verona Collection compatible"],
+    features: ["Solid brass construction", "Sprung arm: holds roll securely", "Square back plate: aligns with Sera Rail", "Concealed fixing system", "Verona Collection compatible"],
     specifications: [{ key: "Arm Projection", value: "130mm" }, { key: "Back Plate", value: "55 × 55mm square" }, { key: "Material", value: "Solid brass PVD" }, { key: "Fixing", value: "Concealed anchor plate" }],
     dimensions: { height: 55, width: 155, depth: 130, weight: 0.45 },
     tradePrice: 5000, mrp: 6800, pricingMode: "on-request", pricingNote: "",
     sku: "EV-AC-004-MB", tags: ["toilet roll holder", "paper holder", "accessory", "brass"],
     images: [], cadFile: null, bimFile: null, techDataSheet: null, installationManual: null, dimensionDiagram: null,
     relatedProducts: ["EV-AC-001", "EV-AC-002"],
-    metaTitle: "Asse Toilet Roll Holder — EVOKE Verona", metaDescription: "Solid brass surface-mounted toilet roll holder with sprung arm from EVOKE.",
+    metaTitle: "Asse Toilet Roll Holder | EVOKE Verona", metaDescription: "Solid brass surface-mounted toilet roll holder with sprung arm from EVOKE.",
   },
 ];
 
@@ -828,17 +829,21 @@ const Toast = ({ toast }) => {
 };
 
 // Breadcrumb
-const Breadcrumb = ({ items, navigate }) => (
-  <div className="flex items-center gap-2 font-body text-warm-grey" style={{ fontSize: 12, letterSpacing: "0.03em" }}>
+// Breadcrumb — plain text only, no clickable navigation
+// Browser Back/Forward is the primary navigation method.
+const Breadcrumb = ({ items, light = false }) => (
+  <div className="flex items-center gap-2 font-body" style={{ fontSize: 12, letterSpacing: "0.06em" }}>
     {items.map((item, i) => (
       <span key={i} className="flex items-center gap-2">
-        {i > 0 && <span className="opacity-40">/</span>}
-        {item.page ? (
-          <button onClick={() => navigate(item.page, item.params || {})}
-            className="hover:text-charcoal transition-colors duration-200">{item.label}</button>
-        ) : (
-          <span className="text-charcoal">{item.label}</span>
+        {i > 0 && (
+          <span style={{ color: light ? "rgba(245,241,234,0.4)" : "#A7A39B", fontSize: 10 }}>/</span>
         )}
+        <span style={{
+          color: light
+            ? (i === items.length - 1 ? "#F5F1EA" : "rgba(245,241,234,0.6)")
+            : (i === items.length - 1 ? "#3A3835" : "#8F8981"),
+          fontWeight: i === items.length - 1 ? 400 : 300,
+        }}>{item.label}</span>
       </span>
     ))}
   </div>
@@ -875,7 +880,7 @@ const SectionHeader = ({ eyebrow, heading, subheading, align = "center", dark = 
 // NAVBAR
 // ═══════════════════════════════════════════
 
-const Navbar = ({ navigate, currentPage, categories }) => {
+const Navbar = ({ navigate, currentPage, isHeroPath, categories }) => {
   const [scrolled, setScrolled] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -887,25 +892,8 @@ const Navbar = ({ navigate, currentPage, categories }) => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const isHeroPage = ["home", "projects", "about", "architects", "hospitality", "inspiration", "showrooms", "collections"].includes(currentPage);
-  const transparent = isHeroPage && !scrolled && !dropdownOpen;
-
-  const handleDropdownEnter = () => {
-    clearTimeout(dropdownTimer.current);
-    setDropdownOpen(true);
-  };
-  const handleDropdownLeave = () => {
-    dropdownTimer.current = setTimeout(() => setDropdownOpen(false), 300);
-  };
-
-  const navLinks = [
-    { label: "Products", page: null, hasDropdown: true },
-    { label: "Collections", page: "collections" },
-    { label: "Projects", page: "projects" },
-    { label: "Inspiration", page: "inspiration" },
-    { label: "Architects & Designers", page: "architects" },
-    { label: "About", page: "about" },
-  ];
+  const isHeroPage = ["/", "/projects", "/about", "/architects-designers", "/hospitality", "/inspiration", "/showrooms", "/collections", "/contact"].some(p => currentPage === p) || currentPage === "/";
+  const isActive = (link) => currentPage.startsWith(link.pathPrefix || "/__never__");
 
   return (
     <>
@@ -954,11 +942,11 @@ const Navbar = ({ navigate, currentPage, categories }) => {
                   className="font-body uppercase transition-colors duration-200 relative"
                   style={{
                     fontSize: 12, letterSpacing: "0.28em", fontWeight: 400,
-                    color: currentPage === link.page
+                    color: isActive(link)
                       ? (transparent ? "#F5F1EA" : "#171717")
                       : (transparent ? "rgba(245,241,234,0.92)" : "#8F8981"),
-                    borderBottom: currentPage === link.page ? "2px solid #C7B9A6" : "none",
-                    paddingBottom: currentPage === link.page ? 2 : 0,
+                    borderBottom: isActive(link) ? "2px solid #C7B9A6" : "none",
+                    paddingBottom: isActive(link) ? 2 : 0,
                   }}
                 >{link.label}</button>
               )
@@ -1069,13 +1057,13 @@ const Navbar = ({ navigate, currentPage, categories }) => {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "#0E0E0D" }}>
-          <div className="flex justify-between items-center px-6 py-5">
-            <Wordmark style={{ fontSize: 20, color: "#F5F1EA" }} />
+        <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "#F5F1EA" }}>
+          <div className="flex justify-between items-center px-6 py-5" style={{ borderBottom: "1px solid #D8CEC0" }}>
+            <Wordmark style={{ fontSize: 20, color: "#171717" }} />
             <button onClick={() => setMobileOpen(false)}
-              className="text-warm-white text-2xl font-light">✕</button>
+              className="text-charcoal text-2xl font-light">✕</button>
           </div>
-          <div className="flex-1 flex flex-col items-center justify-center gap-8">
+          <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center gap-6 py-8 px-6">
             {navLinks.map(link => (
               <button
                 key={link.label}
@@ -1084,14 +1072,15 @@ const Navbar = ({ navigate, currentPage, categories }) => {
                   else navigate("category", { categoryId: "bath-fittings" });
                   setMobileOpen(false);
                 }}
-                className="font-display text-warm-white"
-                style={{ fontSize: 34, fontWeight: 400, letterSpacing: "0.17em" }}
+                className="font-display text-charcoal"
+                style={{ fontSize: "clamp(24px, 7vw, 36px)", fontWeight: 400, letterSpacing: "0.17em" }}
               >{link.label}</button>
             ))}
+            <div style={{ width: 40, height: 1, background: "rgba(245,241,234,0.2)", margin: "8px 0" }} />
             <button
               onClick={() => { navigate("contact"); setMobileOpen(false); }}
-              className="font-body uppercase text-warm-white border border-warm-white mt-4"
-              style={{ fontSize: 12, letterSpacing: "0.28em", padding: "12px 32px" }}
+              className="font-body uppercase text-charcoal"
+              style={{ fontSize: 12, letterSpacing: "0.28em", padding: "14px 40px", border: "1px solid #C7B9A6" }}
             >Project Inquiry</button>
           </div>
         </div>
@@ -1110,8 +1099,8 @@ const Footer = ({ navigate, categories }) => (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
       <VMonogram size={280} color="white" className="opacity-5" />
     </div>
-    <div className="relative px-8 lg:px-16">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+    <div className="relative px-5 sm:px-8 lg:px-16">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12 lg:mb-16">
         {/* Col 1 */}
         <div>
           <Wordmark style={{ color: "#F5F1EA", fontSize: 21, display: "block", marginBottom: 12 }} />
@@ -1119,7 +1108,7 @@ const Footer = ({ navigate, categories }) => (
           <p className="font-body text-warm-grey" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.95, marginBottom: 16 }}>
             Specification-grade bath solutions for luxury residences, hotels, and landmark developments.
           </p>
-          <p className="font-body text-warm-grey uppercase" style={{ fontSize: 11, letterSpacing: "0.28em" }}>
+          <p className="font-body uppercase" style={{ fontSize: 11, letterSpacing: "0.28em", color: "#3A3835" }}>
             BATH. SANITARYWARE. ARCHITECTURAL SOLUTIONS.
           </p>
         </div>
@@ -1228,7 +1217,7 @@ const SearchBar = ({ navigate }) => {
   // Shared vertical rhythm: 20px padding-top, 20px padding-bottom on BOTH
   // input and button. The form has no border — each child owns its own
   // borderBottom at the same distance from baseline → pixel-perfect alignment.
-  const rowPad = { paddingTop: 26, paddingBottom: 26 };
+  const rowPad = { paddingTop: 20, paddingBottom: 20 };
   const BORDER = "1px solid rgba(167,163,155,0.25)";
 
   return (
@@ -1313,31 +1302,32 @@ const HomePage = ({ navigate, categories, products, collections }) => {
         </video>
         <div className="absolute inset-0"
           style={{ background: "linear-gradient(to bottom, rgba(14,14,13,0.45) 0%, rgba(14,14,13,0.75) 100%)" }} />
-        <div className="relative z-10 text-center px-6" style={{ maxWidth: 800, marginTop: 80 }}>
+        <div className="relative z-10 text-center px-6 w-full" style={{ maxWidth: 800, marginTop: 40 }}>
           <div className="flex justify-center" style={{ marginBottom: 28 }}>
-            <Wordmark style={{ fontSize: 48, color: "#F5F1EA", letterSpacing: "0.22em" }} />
+            <Wordmark style={{ fontSize: "clamp(28px, 6vw, 52px)", color: "#F5F1EA", letterSpacing: "0.22em" }} />
           </div>
-          <p className="font-body uppercase text-warm-grey mb-10" style={{ fontSize: 13, letterSpacing: "0.32em" }}>
+          <p className="font-body uppercase text-warm-grey mb-8" style={{ fontSize: "clamp(10px, 2vw, 13px)", letterSpacing: "0.28em" }}>
             ARCHITECTURAL BATH SOLUTIONS
           </p>
           <h1 className="font-display text-warm-white" style={{
             fontSize: "clamp(32px, 4.5vw, 58px)", fontWeight: 400,
             letterSpacing: "0.14em", lineHeight: 1.2
           }}>
-            Designed for Architecture.<br />Crafted for Living.
+            <span className="hidden sm:inline">Designed for Architecture.<br />Crafted for Living.</span>
+            <span className="sm:hidden">Designed for Living.</span>
           </h1>
           <p className="font-body text-warm-white mt-8 mx-auto" style={{
             fontSize: 17, fontWeight: 300, opacity: 0.75, maxWidth: 520, lineHeight: 1.95
           }}>
             Complete bathroom systems for luxury residences, hotels, and landmark developments.
           </p>
-          <div className="flex items-center justify-center gap-4 mt-12 flex-wrap">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-10">
             <button
               onClick={() => navigate("projects")}
               className="font-body uppercase transition-all duration-300"
               style={{
                 fontSize: 12, letterSpacing: "0.28em", fontWeight: 400,
-                background: "#F5F1EA", color: "#171717", padding: "14px 36px",
+                background: "#F5F1EA", color: "#171717", padding: "14px 36px", width: "100%", maxWidth: 280,
               }}
               onMouseEnter={e => e.currentTarget.style.background = "#D8CEC0"}
               onMouseLeave={e => e.currentTarget.style.background = "#F5F1EA"}
@@ -1348,7 +1338,7 @@ const HomePage = ({ navigate, categories, products, collections }) => {
               style={{
                 fontSize: 12, letterSpacing: "0.28em", fontWeight: 400,
                 border: "1px solid rgba(245,241,234,0.6)", color: "#F5F1EA",
-                padding: "14px 36px", background: "transparent",
+                padding: "14px 36px", background: "transparent", width: "100%", maxWidth: 280,
               }}
               onMouseEnter={e => { e.currentTarget.style.background = "rgba(245,241,234,0.12)"; }}
               onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
@@ -1360,13 +1350,13 @@ const HomePage = ({ navigate, categories, products, collections }) => {
 
       {/* SEARCH BAR */}
       <section style={{ background: "#0E0E0D", padding: "0" }}>
-        <div className="px-8 lg:px-16">
+        <div className="px-4 lg:px-16">
           <SearchBar navigate={navigate} />
         </div>
       </section>
 
       {/* BRAND INTRO */}
-      <section className="bg-warm-white py-36">
+      <section className="bg-warm-white py-20 lg:py-36">
         <div className="px-8 lg:px-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
             <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 12, letterSpacing: "0.28em" }}>
@@ -1379,7 +1369,7 @@ const HomePage = ({ navigate, categories, products, collections }) => {
               EVOKE was founded on a single principle: that every element of the bathroom environment deserves the same level of specification rigour applied to structural architecture. We serve architects, interior designers, luxury developers, and five-star hospitality groups across India and internationally.
             </p>
             <p className="font-body text-warm-grey mb-10" style={{ fontSize: 17, fontWeight: 300, lineHeight: 2.0 }}>
-              Every product in our catalogue is designed as a complete system — faucet to finish, basin to cistern — coordinated across collections to allow seamless specification at any project scale.
+              Every product in our catalogue is designed as a complete system: faucet to finish, basin to cistern, coordinated across collections to allow seamless specification at any project scale.
             </p>
             <button
               onClick={() => navigate("about")}
@@ -1388,14 +1378,14 @@ const HomePage = ({ navigate, categories, products, collections }) => {
             >Our Approach →</button>
           </div>
           <div className="relative">
-            <ImageWithWatermark src={imgVHWB001} aspectClass="aspect-4/3" monogramSize={28} alt="Lago Vessel Basin — EVOKE" />
+            <ImageWithWatermark src={imgVHWB001} aspectClass="aspect-4/3" monogramSize={28} alt="Lago Vessel Basin | EVOKE" />
           </div>
         </div>
       </section>
 
       {/* BRAND PILLARS */}
       <section className="py-10" style={{ background: "#0E0E0D" }}>
-        <div className="px-8 lg:px-16">
+        <div className="px-4 sm:px-8 lg:px-16">
           <div className="grid grid-cols-2 lg:grid-cols-6 gap-0">
             {[
               "Italian Craftsmanship", "Architectural Precision", "Specification Grade",
@@ -1416,10 +1406,10 @@ const HomePage = ({ navigate, categories, products, collections }) => {
       </section>
 
       {/* PRODUCT CATEGORIES */}
-      <section className="bg-warm-white py-28">
-        <div className="px-8 lg:px-16">
+      <section className="bg-warm-white py-16 lg:py-28">
+        <div className="px-5 sm:px-8 lg:px-16">
           <SectionHeader eyebrow="COMPLETE SYSTEMS" heading="Every Element. Specified."
-            subheading="From faucet to finish — a complete architectural bath solution." />
+            subheading="From faucet to finish: a complete architectural bath solution." />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "#D8CEC0" }}>
             {categories.map(cat => (
               <button
@@ -1448,8 +1438,8 @@ const HomePage = ({ navigate, categories, products, collections }) => {
       </section>
 
       {/* PROJECTS */}
-      <section className="py-24" style={{ background: "#D8CEC0" }}>
-        <div className="px-8 lg:px-16">
+      <section className="py-16 lg:py-24" style={{ background: "#D8CEC0" }}>
+        <div className="px-5 sm:px-8 lg:px-16">
           <SectionHeader eyebrow="OUR WORK" heading="Landmark Spaces"
             subheading="Specification-grade solutions delivered to the world's most demanding projects." />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1499,10 +1489,10 @@ const HomePage = ({ navigate, categories, products, collections }) => {
       </section>
 
       {/* COLLECTIONS */}
-      <section className="bg-warm-white py-24">
-        <div className="px-8 lg:px-16">
+      <section className="bg-warm-white py-16 lg:py-24">
+        <div className="px-5 sm:px-8 lg:px-16">
           <SectionHeader eyebrow="SIGNATURE COLLECTIONS" heading="Italian Design. Enduring Form." />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {collections.map(col => (
               <button
                 key={col.id}
@@ -1546,7 +1536,7 @@ const HomePage = ({ navigate, categories, products, collections }) => {
               Designed for Architects, Designers and Developers
             </h2>
             <p className="font-body text-warm-grey mb-10" style={{ fontSize: 17, fontWeight: 300, lineHeight: 2.0 }}>
-              EVOKE offers dedicated specification support for the professional community — including project-specific pricing, finish coordination across entire builds, BOQ assistance, design consultation, bulk supply agreements, and a dedicated project manager for each engagement.
+              EVOKE offers dedicated specification support for the professional community, including project-specific pricing, finish coordination across entire builds, BOQ assistance, design consultation, bulk supply agreements, and a dedicated project manager for each engagement.
             </p>
             <div className="flex gap-4 flex-wrap">
               <button
@@ -1566,7 +1556,7 @@ const HomePage = ({ navigate, categories, products, collections }) => {
             </div>
           </div>
           <div>
-            <ImageWithWatermark src={imgVHBF001} aspectClass="aspect-4/3" monogramSize={28} alt="Elara Wall-Mounted Basin Mixer — EVOKE" />
+            <ImageWithWatermark src={imgVHBF001} aspectClass="aspect-4/3" monogramSize={28} alt="Elara Wall-Mounted Basin Mixer | EVOKE" />
           </div>
         </div>
       </section>
@@ -1610,13 +1600,13 @@ const HomePage = ({ navigate, categories, products, collections }) => {
 const CategoryPage = ({ navigate, params, categories }) => {
   const category = categories.find(c => c.id === params.categoryId) || categories[0];
   return (
-    <div style={{ paddingTop: 80 }}>
+    <div style={{ paddingTop: "clamp(64px, 10vw, 80px)" }}>
       {/* Hero */}
       <div className="relative flex flex-col items-center justify-center"
         style={{ height: "40vh", minHeight: 300, background: "linear-gradient(145deg, #D8CEC0, #8F8981)" }}>
         <div className="absolute inset-0" style={{ background: "rgba(14,14,13,0.4)" }} />
         <div className="absolute top-6 left-8 lg:left-16 z-10">
-          <Breadcrumb navigate={navigate} items={[
+          <Breadcrumb light items={[
             { label: "Home", page: "home" },
             { label: category.name }
           ]} />
@@ -1631,8 +1621,8 @@ const CategoryPage = ({ navigate, params, categories }) => {
 
       {/* Subcategories */}
       <section className="bg-warm-white py-20">
-        <div className="px-8 lg:px-16">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-px" style={{ background: "#D8CEC0" }}>
+        <div className="px-5 sm:px-8 lg:px-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-px" style={{ background: "#D8CEC0" }}>
             {category.subcategories.map(sub => (
               <button
                 key={sub.id}
@@ -1763,7 +1753,7 @@ const ProductListingPage = ({ navigate, params, products, categories, finishes }
   );
 
   return (
-    <div style={{ paddingTop: 80 }}>
+    <div style={{ paddingTop: "clamp(64px, 10vw, 80px)" }}>
       <div className="flex">
         {/* Sidebar - desktop */}
         <aside className="hidden lg:block sticky top-18 self-start" style={{ width: 240, minWidth: 240, padding: "32px 24px", borderRight: "1px solid #D8CEC0", height: "calc(100vh - 72px)", overflowY: "auto" }}>
@@ -1771,16 +1761,16 @@ const ProductListingPage = ({ navigate, params, products, categories, finishes }
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 px-6 lg:px-10 py-10">
+        <main className="flex-1 px-4 sm:px-6 lg:px-10 py-6 lg:py-10">
           {/* Breadcrumb */}
-          <Breadcrumb navigate={navigate} items={[
+          <Breadcrumb items={[
             { label: "Home", page: "home" },
             { label: category?.name, page: "category", params: { categoryId: params.categoryId } },
             { label: subcategory?.name || "All Products" }
           ]} />
 
           <div className="flex items-center justify-between mt-6 mb-8">
-            <h1 className="font-display text-charcoal" style={{ fontSize: 34, fontWeight: 400, letterSpacing: "0.14em" }}>
+            <h1 className="font-display text-charcoal" style={{ fontSize: "clamp(22px, 4vw, 34px)", fontWeight: 400, letterSpacing: "0.14em" }}>
               {subcategory?.name || category?.name}
             </h1>
             <div className="flex items-center gap-3 flex-wrap">
@@ -1808,7 +1798,7 @@ const ProductListingPage = ({ navigate, params, products, categories, finishes }
               <p className="font-body text-warm-grey" style={{ fontSize: 14 }}>No products found in this category.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
               {filtered.map(product => (
                 <button
                   key={product.id}
@@ -1820,7 +1810,7 @@ const ProductListingPage = ({ navigate, params, products, categories, finishes }
                   <div style={{ border: "1px solid #D8CEC0" }}>
                     <ImageWithWatermark src={product.images[0]} aspectClass="aspect-square" monogramSize={20} alt={product.name} />
                     <div className="p-5" style={{ background: "#F5F1EA" }}>
-                      <p className="font-body text-warm-grey uppercase" style={{ fontSize: 11, letterSpacing: "0.28em" }}>{product.id}</p>
+                      <p className="font-body uppercase" style={{ fontSize: 11, letterSpacing: "0.28em", color: "#3A3835" }}>{product.id}</p>
                       <h3 className="font-display text-charcoal mt-1" style={{ fontSize: 21, fontWeight: 400, letterSpacing: "0.14em" }}>{product.name}</h3>
                       <div className="flex items-center gap-2 mt-3">
                         <span className="font-body uppercase" style={{ fontSize: 11, letterSpacing: "0.22em", background: "#C7B9A6", color: "#171717", padding: "2px 8px" }}>
@@ -1880,10 +1870,10 @@ const ProductDetailPage = ({ navigate, params, products, categories, finishes })
   const tabs = ["overview", "dimensions", "downloads"];
 
   return (
-    <div style={{ paddingTop: 80 }}>
+    <div style={{ paddingTop: "clamp(64px, 10vw, 80px)" }}>
       <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
         {/* Left: Image Panel */}
-        <div className="lg:sticky lg:top-18 lg:h-screen flex flex-col" style={{ background: "#F5F1EA" }}>
+        <div className="lg:sticky lg:top-18 lg:h-screen flex flex-col" style={{ background: "#F5F1EA", minHeight: "50vw" }}>
           {/* Main image */}
           <div className="relative flex-1 overflow-hidden" style={{ minHeight: 400 }}>
             <div className="w-full h-full" style={{ background: "linear-gradient(145deg, #D8CEC0, #8F8981)" }}>
@@ -1972,15 +1962,15 @@ const ProductDetailPage = ({ navigate, params, products, categories, finishes })
         </div>
 
         {/* Right: Spec Panel */}
-        <div className="px-8 lg:px-14 py-12 bg-warm-white overflow-y-auto">
-          <Breadcrumb navigate={navigate} items={[
+        <div className="px-5 sm:px-8 lg:px-14 py-8 lg:py-12 bg-warm-white overflow-y-auto">
+          <Breadcrumb items={[
             { label: "Home", page: "home" },
             { label: category?.name, page: "category", params: { categoryId: product.categoryId } },
             { label: subcategory?.name, page: "product-listing", params: { categoryId: product.categoryId, subcategoryId: product.subcategoryId } },
             { label: product.name }
           ]} />
 
-          <p className="font-body text-warm-grey uppercase mt-6" style={{ fontSize: 11, letterSpacing: "0.28em" }}>{product.id}</p>
+          <p className="font-body uppercase mt-6" style={{ fontSize: 11, letterSpacing: "0.28em", color: "#3A3835" }}>{product.id}</p>
           <h1 className="font-display text-charcoal mt-2" style={{ fontSize: "clamp(32px, 4vw, 52px)", fontWeight: 300, letterSpacing: "0.17em", lineHeight: 1.15 }}>
             {product.name}
           </h1>
@@ -2163,7 +2153,7 @@ const ProductDetailPage = ({ navigate, params, products, categories, finishes })
 // ═══════════════════════════════════════════
 
 const CollectionsPage = ({ navigate, collections, products }) => (
-  <div style={{ paddingTop: 80 }}>
+  <div style={{ paddingTop: "clamp(64px, 10vw, 80px)" }}>
     <div className="relative flex items-center justify-center" style={{ height: "40vh", background: "linear-gradient(145deg, #D8CEC0, #8F8981)" }}>
       <div className="absolute inset-0" style={{ background: "rgba(14,14,13,0.4)" }} />
       <div className="relative z-10 text-center">
@@ -2173,8 +2163,8 @@ const CollectionsPage = ({ navigate, collections, products }) => (
         <div style={{ width: 40, height: 2, background: "#C7B9A6", margin: "16px auto 0" }} />
       </div>
     </div>
-    <section className="bg-warm-white py-24">
-      <div className="px-8 lg:px-16">
+    <section className="bg-warm-white py-16 lg:py-24">
+      <div className="px-5 sm:px-8 lg:px-16">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {collections.map(col => (
             <button key={col.id} onClick={() => navigate("collection-detail", { collectionId: col.id })}
@@ -2210,7 +2200,7 @@ const CollectionDetailPage = ({ navigate, params, collections, products, categor
   const collection = collections.find(c => c.id === params.collectionId) || collections[0];
   const colProducts = products.filter(p => p.collectionId === collection.id && p.published);
   return (
-    <div style={{ paddingTop: 80 }}>
+    <div style={{ paddingTop: "clamp(64px, 10vw, 80px)" }}>
       <div className="relative flex items-center justify-center" style={{ height: "50vh", background: "linear-gradient(145deg, #D8CEC0, #171717)" }}>
         <div className="absolute inset-0" style={{ background: "rgba(14,14,13,0.5)" }} />
         <div className="relative z-10 text-center">
@@ -2221,7 +2211,7 @@ const CollectionDetailPage = ({ navigate, params, collections, products, categor
         </div>
       </div>
       <section className="bg-warm-white py-20">
-        <div className="px-8 lg:px-16">
+        <div className="px-5 sm:px-8 lg:px-16">
           <SectionHeader eyebrow={`${collection.name} COLLECTION`} heading="Complete Specification Range" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {colProducts.map(p => (
@@ -2264,7 +2254,7 @@ const ContactPage = ({ navigate }) => {
   const [submitted, setSubmitted] = useState(false);
 
   return (
-    <div style={{ paddingTop: 80 }}>
+    <div style={{ paddingTop: "clamp(64px, 10vw, 80px)" }}>
       <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
         <div className="py-20 px-10 lg:px-16" style={{ background: "#D8CEC0" }}>
           <p className="font-body uppercase text-charcoal mb-4" style={{ fontSize: 12, letterSpacing: "0.28em", opacity: 0.6 }}>GET IN TOUCH</p>
@@ -2484,7 +2474,7 @@ const SearchPage = ({ navigate, query, products, categories }) => {
     <div style={{ paddingTop: 80, minHeight: "100vh", background: "#F5F1EA" }}>
       {/* Search header */}
       <div style={{ background: "#0E0E0D", padding: "48px 0 40px" }}>
-        <div className="px-8 lg:px-16">
+        <div className="px-5 sm:px-8 lg:px-16">
           <p className="font-body uppercase text-warm-grey mb-5" style={{ fontSize: 11, letterSpacing: "0.32em" }}>PRODUCT SEARCH</p>
           <form onSubmit={handleSearchSubmit} className="flex items-end gap-0" style={{ maxWidth: 680 }}>
             <input
@@ -2525,7 +2515,7 @@ const SearchPage = ({ navigate, query, products, categories }) => {
               <p className="font-body text-charcoal" style={{ fontSize: 14, fontWeight: 300 }}>
                 {results.length > 0
                   ? <><span style={{ fontWeight: 400 }}>{results.length} result{results.length !== 1 ? "s" : ""}</span> for "<span style={{ fontStyle: "italic" }}>{localQuery}</span>"</>
-                  : <>No results for "<span style={{ fontStyle: "italic" }}>{localQuery}</span>" — showing related products</>
+                  : <>No results for &#8220;<em>{localQuery}</em>&#8221;. Showing related products</>
                 }
               </p>
             ) : (
@@ -2544,7 +2534,7 @@ const SearchPage = ({ navigate, query, products, categories }) => {
 
       {/* Results grid */}
       <section className="py-16">
-        <div className="px-8 lg:px-16">
+        <div className="px-5 sm:px-8 lg:px-16">
           {results.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
               {results.map(product => (
@@ -2672,7 +2662,7 @@ const ProjectsPage = ({ navigate }) => {
   ];
 
   return (
-    <div style={{ paddingTop: 80 }}>
+    <div style={{ paddingTop: "clamp(64px, 10vw, 80px)" }}>
       {/* Hero */}
       <div className="relative flex items-center justify-center"
         style={{ height: "40vh", minHeight: 320, background: "linear-gradient(145deg, #D8CEC0 0%, #8F8981 60%, #171717 100%)" }}>
@@ -2688,7 +2678,7 @@ const ProjectsPage = ({ navigate }) => {
 
       {/* Intro strip */}
       <section style={{ background: "#0E0E0D", padding: "48px 0" }}>
-        <div className="px-8 lg:px-16">
+        <div className="px-5 sm:px-8 lg:px-16">
           <p className="font-body text-warm-grey text-center mx-auto" style={{ fontSize: 17, fontWeight: 300, lineHeight: 2.0, maxWidth: 640 }}>
             From private residences to five-star resorts, EVOKE delivers complete bathroom solutions for the world's most demanding projects.
           </p>
@@ -2697,7 +2687,7 @@ const ProjectsPage = ({ navigate }) => {
 
       {/* Projects list */}
       <section className="bg-warm-white py-20">
-        <div className="px-8 lg:px-16">
+        <div className="px-5 sm:px-8 lg:px-16">
           {projects.map((project, idx) => (
             <div key={project.id}
               style={{ borderBottom: idx < projects.length - 1 ? "1px solid #D8CEC0" : "none", paddingBottom: 72, marginBottom: 72 }}>
@@ -2840,7 +2830,7 @@ const InspirationPage = ({ navigate }) => {
   ];
 
   return (
-    <div style={{ paddingTop: 80 }}>
+    <div style={{ paddingTop: "clamp(64px, 10vw, 80px)" }}>
       {/* Hero */}
       <div className="relative flex items-center justify-center"
         style={{ height: "40vh", minHeight: 320, background: "linear-gradient(145deg, #D8CEC0 0%, #8F8981 60%, #171717 100%)" }}>
@@ -2854,7 +2844,7 @@ const InspirationPage = ({ navigate }) => {
 
       {/* Intro */}
       <section className="bg-warm-white py-20">
-        <div className="px-8 lg:px-16">
+        <div className="px-5 sm:px-8 lg:px-16">
           <SectionHeader
             eyebrow="DESIGN DIRECTIONS"
             heading="Five Aesthetic Worlds"
@@ -2862,7 +2852,7 @@ const InspirationPage = ({ navigate }) => {
           />
 
           {/* Board grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-px" style={{ background: "#D8CEC0" }}>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-px" style={{ background: "#D8CEC0" }}>
             {boards.slice(0, 3).map(board => (
               <button
                 key={board.id}
@@ -2970,18 +2960,17 @@ const InspirationPage = ({ navigate }) => {
 // ═══════════════════════════════════════════
 
 const ArchitectsPage = ({ navigate }) => {
-  const services = [
-    "Technical specification assistance",
-    "CAD & BIM support",
-    "Finish sampling",
-    "Product customization",
-    "BOQ assistance",
-    "Project coordination",
-    "Dedicated specification consultants",
+  const benefits = [
+    { num: "01", title: "Specification Assistance", body: "Our team works directly with your specification to match product, finish, and technical requirements to project briefs." },
+    { num: "02", title: "CAD and BIM Support", body: "Full 2D CAD drawing libraries and Revit-compatible BIM families available for every EVOKE product." },
+    { num: "03", title: "Finish Sampling", body: "Physical finish samples dispatched to your studio for client presentations and material boards." },
+    { num: "04", title: "BOQ Assistance", body: "Dedicated consultants to assist with bill of quantities, product scheduling, and procurement coordination." },
+    { num: "05", title: "Project Coordination", body: "From initial specification through to site delivery, we assign a project manager to every qualifying scheme." },
+    { num: "06", title: "Trade Pricing", body: "Verified architects and interior designers access a structured trade pricing programme across the full EVOKE catalogue." },
   ];
 
   const resources = [
-    { label: "Product Catalogue", format: "PDF", desc: "Complete product specifications and finishes" },
+    { label: "Product Catalogue", format: "PDF", desc: "Complete specifications and finishes across all collections" },
     { label: "Technical Drawings", format: "DWG / PDF", desc: "2D CAD drawings for all products" },
     { label: "BIM Library", format: "RFA / IFC", desc: "Full BIM families for Revit and other platforms" },
     { label: "Installation Guides", format: "PDF", desc: "Step-by-step installation documentation" },
@@ -2989,77 +2978,78 @@ const ArchitectsPage = ({ navigate }) => {
   ];
 
   return (
-    <div style={{ paddingTop: 80 }}>
+    <div style={{ paddingTop: "clamp(64px, 10vw, 80px)" }}>
       {/* Hero */}
       <div className="relative flex items-center justify-center"
         style={{ height: "50vh", minHeight: 360, background: "linear-gradient(145deg, #171717 0%, #8F8981 70%, #D8CEC0 100%)" }}>
         <div className="absolute inset-0" style={{ background: "rgba(14,14,13,0.5)" }} />
         <div className="relative z-10 text-center px-6" style={{ maxWidth: 680 }}>
           <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 12, letterSpacing: "0.28em" }}>SPECIFICATION COMMUNITY</p>
-          <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(38px, 5vw, 64px)", fontWeight: 300, letterSpacing: "0.17em", lineHeight: 1.15 }}>
+          <h1 className="font-display text-warm-white" style={{ fontSize: "clamp(38px, 5vw, 64px)", fontWeight: 400, letterSpacing: "0.14em", lineHeight: 1.15 }}>
             Built for Specification
           </h1>
-          <div style={{ width: 40, height: 2, background: "#C7B9A6", margin: "20px auto" }} />
+          <div style={{ width: 40, height: 1, background: "#C7B9A6", margin: "20px auto" }} />
           <p className="font-body text-warm-white" style={{ fontSize: 17, fontWeight: 300, opacity: 0.75, lineHeight: 1.95 }}>
             EVOKE works closely with architects, interior designers, consultants, and project teams to deliver tailored bathroom solutions.
           </p>
         </div>
       </div>
 
-      {/* Services + Resources two-column */}
-      <section className="bg-warm-white py-24">
-        <div className="px-8 lg:px-16 grid grid-cols-1 lg:grid-cols-2 gap-16">
-
-          {/* Services */}
-          <div>
-            <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 12, letterSpacing: "0.28em" }}>WHAT WE OFFER</p>
-            <h2 className="font-display text-charcoal mb-8" style={{ fontSize: "clamp(28px, 3vw, 42px)", fontWeight: 400, letterSpacing: "0.14em", lineHeight: 1.2 }}>
+      {/* Benefits grid */}
+      <section className="bg-warm-white py-16 lg:py-24">
+        <div className="px-5 sm:px-8 lg:px-16">
+          <div className="max-w-3xl mb-14">
+            <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 12, letterSpacing: "0.28em" }}>WHAT WE OFFER</p>
+            <h2 className="font-display text-charcoal" style={{ fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 400, letterSpacing: "0.14em", lineHeight: 1.2 }}>
               End-to-End Specification Support
             </h2>
-            <div>
-              {services.map((svc, i) => (
-                <div key={i} className="flex items-start gap-4 py-4" style={{ borderBottom: "1px solid #D8CEC0" }}>
-                  <span className="font-body text-warm-grey" style={{ fontSize: 13, minWidth: 24, paddingTop: 1 }}>
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="font-body text-charcoal" style={{ fontSize: 14, fontWeight: 300, lineHeight: 1.75 }}>{svc}</span>
-                </div>
-              ))}
-            </div>
           </div>
-
-          {/* Resources */}
-          <div>
-            <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 12, letterSpacing: "0.28em" }}>RESOURCES AVAILABLE</p>
-            <h2 className="font-display text-charcoal mb-8" style={{ fontSize: "clamp(28px, 3vw, 42px)", fontWeight: 400, letterSpacing: "0.14em", lineHeight: 1.2 }}>
-              Everything You Need to Specify
-            </h2>
-            <div>
-              {resources.map((res, i) => (
-                <div key={i} className="flex items-center justify-between py-4 group cursor-pointer"
-                  style={{ borderBottom: "1px solid #D8CEC0" }}
-                  onMouseEnter={e => e.currentTarget.style.background = "#F5F1EA"}
-                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                  <div className="flex items-center gap-4 px-2">
-                    <span className="font-body uppercase" style={{ fontSize: 10, letterSpacing: "0.22em", background: "#D8CEC0", color: "#171717", padding: "2px 8px" }}>
-                      {res.format}
-                    </span>
-                    <div>
-                      <p className="font-body text-charcoal" style={{ fontSize: 15, fontWeight: 400 }}>{res.label}</p>
-                      <p className="font-body text-warm-grey" style={{ fontSize: 12, fontWeight: 300 }}>{res.desc}</p>
-                    </div>
-                  </div>
-                  <span className="font-body text-warm-grey" style={{ fontSize: 13, paddingRight: 8 }}>→</span>
-                </div>
-              ))}
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "#D8CEC0" }}>
+            {benefits.map(b => (
+              <div key={b.num} className="bg-warm-white p-8 lg:p-10">
+                <p className="font-body text-warm-grey mb-5" style={{ fontSize: 11, letterSpacing: "0.22em" }}>{b.num}</p>
+                <h3 className="font-display text-charcoal mb-4" style={{ fontSize: 20, fontWeight: 400, letterSpacing: "0.10em", lineHeight: 1.3 }}>{b.title}</h3>
+                <p className="font-body text-warm-grey" style={{ fontSize: 15, fontWeight: 300, lineHeight: 1.95 }}>{b.body}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Professional account CTA */}
+      {/* Resources */}
+      <section style={{ background: "#F0EDE8" }} className="py-16 lg:py-24">
+        <div className="px-5 sm:px-8 lg:px-16">
+          <div className="max-w-3xl mb-14">
+            <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 12, letterSpacing: "0.28em" }}>RESOURCES AVAILABLE</p>
+            <h2 className="font-display text-charcoal" style={{ fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 400, letterSpacing: "0.14em", lineHeight: 1.2 }}>
+              Everything You Need to Specify
+            </h2>
+          </div>
+          <div style={{ borderTop: "1px solid #D8CEC0" }}>
+            {resources.map((res, i) => (
+              <div key={i} className="flex items-center justify-between py-5 group"
+                style={{ borderBottom: "1px solid #D8CEC0" }}
+                onMouseEnter={e => e.currentTarget.style.background = "#E8E4DE"}
+                onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                <div className="flex items-center gap-5 px-1">
+                  <span className="font-body uppercase flex-shrink-0" style={{ fontSize: 10, letterSpacing: "0.22em", background: "#D8CEC0", color: "#3A3835", padding: "3px 10px" }}>
+                    {res.format}
+                  </span>
+                  <div>
+                    <p className="font-body text-charcoal" style={{ fontSize: 16, fontWeight: 400 }}>{res.label}</p>
+                    <p className="font-body text-warm-grey" style={{ fontSize: 13, fontWeight: 300, marginTop: 2 }}>{res.desc}</p>
+                  </div>
+                </div>
+                <span className="font-body text-warm-grey group-hover:text-charcoal transition-colors pr-2" style={{ fontSize: 15 }}>→</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Trade programme CTA */}
       <section style={{ background: "#0E0E0D", padding: "80px 0" }}>
-        <div className="px-8 lg:px-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="px-5 sm:px-8 lg:px-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
             <p className="font-body uppercase text-warm-grey mb-4" style={{ fontSize: 12, letterSpacing: "0.28em" }}>TRADE PROGRAMME</p>
             <h2 className="font-display text-warm-white mb-6" style={{ fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 400, letterSpacing: "0.14em", lineHeight: 1.2 }}>
@@ -3085,13 +3075,13 @@ const ArchitectsPage = ({ navigate }) => {
               </button>
             </div>
           </div>
-          <div className="relative overflow-hidden"
+          <div className="hidden lg:block relative overflow-hidden"
             style={{ aspectRatio: "4/3", background: "linear-gradient(145deg, #D8CEC0 0%, #8F8981 100%)" }}>
             <div className="absolute inset-0 flex items-center justify-center" style={{ opacity: 0.08 }}>
               <VMonogram size={120} color="white" />
             </div>
             <div className="absolute bottom-8 left-8 right-8">
-              <p className="font-display text-warm-white" style={{ fontSize: 21, fontWeight: 300, letterSpacing: "0.14em", lineHeight: 1.4, opacity: 0.9 }}>
+              <p className="font-display text-warm-white" style={{ fontSize: 21, fontWeight: 300, letterSpacing: "0.10em", lineHeight: 1.5, opacity: 0.9 }}>
                 "Specification-grade products with the support to match."
               </p>
             </div>
@@ -3101,11 +3091,6 @@ const ArchitectsPage = ({ navigate }) => {
     </div>
   );
 };
-
-// ═══════════════════════════════════════════
-// HOSPITALITY & DEVELOPERS PAGE
-// ═══════════════════════════════════════════
-
 const HospitalityPage = ({ navigate }) => {
   const capabilities = [
     "Multi-property rollouts",
@@ -3132,7 +3117,7 @@ const HospitalityPage = ({ navigate }) => {
   ];
 
   return (
-    <div style={{ paddingTop: 80 }}>
+    <div style={{ paddingTop: "clamp(64px, 10vw, 80px)" }}>
       {/* Hero */}
       <div className="relative flex items-center justify-center"
         style={{ height: "50vh", minHeight: 360, background: "linear-gradient(145deg, #0E0E0D 0%, #171717 40%, #8F8981 100%)" }}>
@@ -3151,7 +3136,7 @@ const HospitalityPage = ({ navigate }) => {
 
       {/* Stats bar */}
       <section style={{ background: "#171717", padding: "0" }}>
-        <div className="px-8 lg:px-16">
+        <div className="px-5 sm:px-8 lg:px-16">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-0">
             {stats.map((stat, i) => (
               <div key={i} className="flex flex-col items-center text-center py-10 px-6"
@@ -3169,7 +3154,7 @@ const HospitalityPage = ({ navigate }) => {
       </section>
 
       {/* Capabilities + Project Support */}
-      <section className="bg-warm-white py-24">
+      <section className="bg-warm-white py-16 lg:py-24">
         <div className="px-8 lg:px-16 grid grid-cols-1 lg:grid-cols-2 gap-16">
 
           {/* Capabilities */}
@@ -3267,7 +3252,7 @@ const ShowroomsPage = ({ navigate }) => {
   ];
 
   return (
-    <div style={{ paddingTop: 80 }}>
+    <div style={{ paddingTop: "clamp(64px, 10vw, 80px)" }}>
       {/* Hero */}
       <div className="relative flex items-center justify-center"
         style={{ height: "40vh", minHeight: 320, background: "linear-gradient(145deg, #D8CEC0 0%, #8F8981 60%, #171717 100%)" }}>
@@ -3281,7 +3266,7 @@ const ShowroomsPage = ({ navigate }) => {
 
       {/* Showroom cards */}
       <section className="bg-warm-white py-20">
-        <div className="px-8 lg:px-16">
+        <div className="px-5 sm:px-8 lg:px-16">
           <SectionHeader eyebrow="OUR LOCATIONS" heading="Experience EVOKE in Person" subheading="Visit a showroom to explore our complete collection, handle finishes, and speak with a specification consultant." />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-20">
@@ -3379,7 +3364,7 @@ const AboutPage = ({ navigate }) => {
   ];
 
   return (
-    <div style={{ paddingTop: 80 }}>
+    <div style={{ paddingTop: "clamp(64px, 10vw, 80px)" }}>
       {/* Hero */}
       <div className="relative flex items-center justify-center"
         style={{ height: "60vh", minHeight: 400, background: "linear-gradient(145deg, #D8CEC0 0%, #8F8981 50%, #171717 100%)" }}>
@@ -3395,7 +3380,7 @@ const AboutPage = ({ navigate }) => {
       </div>
 
       {/* Brand story */}
-      <section className="bg-warm-white py-24">
+      <section className="bg-warm-white py-16 lg:py-24">
         <div className="px-8 lg:px-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           <div>
             <p className="font-body uppercase text-warm-grey mb-6" style={{ fontSize: 12, letterSpacing: "0.28em" }}>OUR STORY</p>
@@ -3406,7 +3391,7 @@ const AboutPage = ({ navigate }) => {
               EVOKE creates bathroom environments that combine architectural precision, sensory comfort, and enduring quality.
             </p>
             <p className="font-body text-warm-grey mb-6" style={{ fontSize: 17, fontWeight: 300, lineHeight: 2.0 }}>
-              Inspired by European design principles and crafted for contemporary living, our collections balance innovation with timeless aesthetics. Every detail is considered — from material selection and engineering to the way light interacts with a space.
+              Inspired by European design principles and crafted for contemporary living, our collections balance innovation with timeless aesthetics. Every detail is considered: from material selection and engineering to the way light interacts with a space.
             </p>
             <p className="font-body text-warm-grey" style={{ fontSize: 17, fontWeight: 300, lineHeight: 2.0 }}>
               Today, EVOKE partners with homeowners, architects, hospitality operators, and developers to deliver complete bathroom solutions across residential, commercial, and hospitality projects.
@@ -3431,7 +3416,7 @@ const AboutPage = ({ navigate }) => {
 
       {/* Core values */}
       <section style={{ background: "#0E0E0D", padding: "80px 0" }}>
-        <div className="px-8 lg:px-16">
+        <div className="px-5 sm:px-8 lg:px-16">
           <SectionHeader dark eyebrow="WHAT WE STAND FOR" heading="Core Values" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px" style={{ background: "rgba(167,163,155,0.2)" }}>
             {values.map((v) => (
@@ -3449,8 +3434,8 @@ const AboutPage = ({ navigate }) => {
       </section>
 
       {/* Timeline */}
-      <section className="bg-warm-white py-24">
-        <div className="px-8 lg:px-16">
+      <section className="bg-warm-white py-16 lg:py-24">
+        <div className="px-5 sm:px-8 lg:px-16">
           <SectionHeader eyebrow="OUR JOURNEY" heading="Milestones" />
           <div className="relative mx-auto" style={{ maxWidth: 720 }}>
             {/* Vertical line */}
@@ -3511,7 +3496,7 @@ const AboutPage = ({ navigate }) => {
 };
 
 const StubPage = ({ title, eyebrow, navigate }) => (
-  <div style={{ paddingTop: 80 }}>
+  <div style={{ paddingTop: "clamp(64px, 10vw, 80px)" }}>
     <div className="relative flex items-center justify-center" style={{ height: "40vh", background: "linear-gradient(145deg, #D8CEC0, #8F8981)" }}>
       <div className="absolute inset-0" style={{ background: "rgba(14,14,13,0.45)" }} />
       <div className="relative z-10 text-center">
@@ -3520,7 +3505,7 @@ const StubPage = ({ title, eyebrow, navigate }) => (
         <div style={{ width: 40, height: 2, background: "#C7B9A6", margin: "16px auto 0" }} />
       </div>
     </div>
-    <section className="bg-warm-white py-24">
+    <section className="bg-warm-white py-16 lg:py-24">
       <div className="px-8 lg:px-16 text-center">
         <VMark size={48} className="mx-auto mb-8 text-charcoal" />
         <p className="font-body text-warm-grey" style={{ fontSize: 17, fontWeight: 300 }}>This section is in development.</p>
@@ -3652,7 +3637,7 @@ const AdminLayout = ({ children, currentPage, navigate, onLogout, adminEmail }) 
         {/* Prototype disclaimer */}
         <div className="px-4 py-3" style={{ background: "rgba(199,185,166,0.1)", borderBottom: "1px solid rgba(167,163,155,0.15)" }}>
           <p className="font-body" style={{ fontSize: 10, color: "#8F8981", lineHeight: 1.5, fontWeight: 300 }}>
-            Prototype mode — data resets on refresh.
+            Prototype mode: data resets on refresh.
           </p>
         </div>
 
@@ -3964,7 +3949,7 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
       <div className="flex items-start justify-between mb-8">
         <div>
           <h1 className="font-body" style={{ fontSize: 22, fontWeight: 500, color: "#1A1A1A" }}>
-            {isEdit ? `Edit — ${form.name || "Untitled Product"}` : "Add New Product"}
+            {isEdit ? `Editing: ${form.name || "Untitled Product"}` : "Add New Product"}
           </h1>
           {isEdit && <p className="font-body mt-1" style={{ fontSize: 13, color: "#6B6B6B", fontWeight: 300 }}>{form.id}</p>}
         </div>
@@ -4318,7 +4303,7 @@ const AdminProductForm = ({ navigate, params, products, categories, collections,
                     </div>
                   ) : (
                     <p className="font-body text-center" style={{ fontSize: 12, color: "#6B6B6B", fontWeight: 300 }}>
-                      Upload {label} — {types}
+                      Upload {label} ({types})
                     </p>
                   )}
                 </div>
@@ -5025,300 +5010,187 @@ const AdminFinishes = ({ finishes, onSave: onSaveFinish, onDelete: onDelFinish, 
 // ROOT APP
 // ═══════════════════════════════════════════
 
+
+
+// ── Page-level wrapper that provides data to all pages ────────
+// DataProvider holds all Supabase state and CRUD handlers.
+// Individual route components consume it via props passed through.
+// ── Route wrappers — extract URL params, render page components ──
+function PLPRoute({ navigate, products, categories, finishes }) {
+  const { categoryId, subcategoryId } = useParams();
+  return <ProductListingPage navigate={navigate} params={{ categoryId, subcategoryId }} products={products} categories={categories} finishes={finishes} />;
+}
+function CategoryRoute({ navigate, products, categories, finishes }) {
+  const { categoryId } = useParams();
+  return <CategoryPage navigate={navigate} params={{ categoryId }} categories={categories} />;
+}
+function PDPRoute({ navigate, products, categories, finishes }) {
+  const { productId } = useParams();
+  return <ProductDetailPage navigate={navigate} params={{ productId }} products={products} categories={categories} finishes={finishes} />;
+}
+function CollectionDetailRoute({ navigate, collections, products, categories }) {
+  const { collectionId } = useParams();
+  return <CollectionDetailPage navigate={navigate} params={{ collectionId }} collections={collections} products={products} categories={categories} />;
+}
+function SearchRoute({ navigate, products, categories }) {
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get("q") || "";
+  return <SearchPage navigate={navigate} query={query} products={products} categories={categories} />;
+}
+
+// ── App — single component, holds all state, renders Routes directly ──
 export default function App() {
-  const [currentPage, setCurrentPage] = useState("home");
-  const [pageParams, setPageParams] = useState({});
-  const [searchQuery, setSearchQuery] = useState("");
+  const rrNavigate = useRRNavigate();
+  const location   = useLocation();
 
-  // ── Data state — seeded from PRODUCTS_DEFAULT on first render,
-  //    then kept in sync with Supabase via effects below ──────
-  const [products,   setProducts]   = useState(PRODUCTS_DEFAULT);
-  const [categories, setCategories] = useState(CATEGORIES_DEFAULT);
-  const [collections,setCollections]= useState(COLLECTIONS);
-  const [finishes,   setFinishes]   = useState(FINISHES_DEFAULT);
+  // ── Data state ───────────────────────────────────────────────
+  const [products,    setProducts]    = useState(PRODUCTS_DEFAULT);
+  const [categories,  setCategories]  = useState(CATEGORIES_DEFAULT);
+  const [collections, setCollections] = useState(COLLECTIONS);
+  const [finishes,    setFinishes]    = useState(FINISHES_DEFAULT);
+  const [toast,       setToast]       = useState(null);
 
-  const [loading, setLoading] = useState(true);
-  const [toast,   setToast]   = useState(null);
-
-
-  // Auth — localStorage only (no server session needed for anon key pattern)
+  // Admin sub-page (internal routing only — no URL change within admin)
+  const [adminPage,       setAdminPage]       = useState("admin");
+  const [adminPageParams, setAdminPageParams] = useState({});
   const [adminAuthenticated, setAdminAuthenticated] = useState(
     () => localStorage.getItem("vorhaus_admin_auth") === "true"
   );
   const adminEmail = localStorage.getItem("vorhaus_admin_email") || "";
 
-  // ── Navigation ──────────────────────────────────────────────
+  // ── navigate() — maps page keys to real URLs ─────────────────
   const navigate = useCallback((page, params = {}) => {
-    setCurrentPage(page);
-    setPageParams(params);
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: "instant" });
     if (page === "admin" || page.startsWith("admin-")) {
-      window.history.pushState({}, "", "#admin");
-    } else if (window.location.hash === "#admin") {
-      window.history.pushState({}, "", "/");
+      setAdminPage(page);
+      setAdminPageParams(params);
+      if (location.pathname !== "/admin") rrNavigate("/admin");
+      return;
     }
-  }, []);
+    const url = {
+      "home":              "/",
+      "category":          `/products/${params.categoryId || ""}`,
+      "product-listing":   params.subcategoryId ? `/products/${params.categoryId}/${params.subcategoryId}` : `/products/${params.categoryId || ""}`,
+      "product-detail":    `/product/${params.productId || ""}`,
+      "collection-detail": `/collections/${params.collectionId || ""}`,
+      "collections":       "/collections",
+      "projects":          "/projects",
+      "inspiration":       "/inspiration",
+      "architects":        "/architects-designers",
+      "about":             "/about",
+      "contact":           "/contact",
+      "showrooms":         "/showrooms",
+      "search":            params.query ? `/search?q=${encodeURIComponent(params.query)}` : "/search",
+    }[page] || "/";
+    rrNavigate(url);
+  }, [rrNavigate, location.pathname]);
 
-  useEffect(() => {
-    if (window.location.hash === "#admin") setCurrentPage("admin");
-  }, []);
+  // ── Toast ────────────────────────────────────────────────────
+  const showToast = (msg, type = "success") => { setToast({ message: msg, type }); setTimeout(() => setToast(null), 3500); };
 
-  // ── Toast ───────────────────────────────────────────────────
-  const showToast = (message, type = "success") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3500);
-  };
-
-  // ── Supabase bootstrap: load data on mount ──────────────────
+  // ── Supabase bootstrap ───────────────────────────────────────
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        // Seed default collections, finishes, categories if DB is empty
         await seedDefaults(COLLECTIONS, FINISHES_DEFAULT, CATEGORIES_DEFAULT, PRODUCTS_DEFAULT);
-
-        const [dbProducts, dbCollections, dbFinishes, dbCategories] = await Promise.all([
-          fetchProducts(),
-          fetchCollections(),
-          fetchFinishes(),
-          fetchCategories(),
-        ]);
-
+        const [dbP, dbC, dbF, dbCat] = await Promise.all([fetchProducts(), fetchCollections(), fetchFinishes(), fetchCategories()]);
         if (!alive) return;
-
-        // Only replace state if we got real data back from Supabase
-        if (dbProducts?.length) {
-          const localById = Object.fromEntries(PRODUCTS_DEFAULT.map(p => [p.id, p]));
-          const merged = dbProducts.map(dbP => {
-            // 1. Remap legacy categoryId values to sanitaryware-accessories
-            const remappedCat = LEGACY_CAT_MAP[dbP.categoryId] || dbP.categoryId;
-            // 2. Fall back to local bundled images when DB has none yet
-            const hasImages = Array.isArray(dbP.images) && dbP.images.length > 0;
-            const images = hasImages ? dbP.images : (localById[dbP.id]?.images || []);
-            return { ...dbP, categoryId: remappedCat, images };
-          });
-          setProducts(merged);
+        if (dbP?.length) {
+          const local = Object.fromEntries(PRODUCTS_DEFAULT.map(p => [p.id, p]));
+          setProducts(dbP.map(p => ({ ...p, categoryId: LEGACY_CAT_MAP[p.categoryId] || p.categoryId, images: p.images?.length ? p.images : (local[p.id]?.images || []) })));
         }
-        if (dbCollections?.length) setCollections(dbCollections);
-        if (dbFinishes?.length)    setFinishes(dbFinishes);
-        if (dbCategories?.length) {
-          // Only accept the 6 known top-level category IDs.
-          // The DB may also contain legacy flat subcategory rows — ignore them.
-          const TOP_LEVEL_IDS = [
-            "bath-fittings","shower-systems","wash-basins",
-            "luxury-vanities","mirrors","sanitaryware-accessories",
-          ];
-          const dbById = Object.fromEntries(
-            dbCategories
-              .filter(c => TOP_LEVEL_IDS.includes(c.id))
-              .map(c => [c.id, { ...c, subcategories: c.subcategories || [] }])
-          );
-          // For any top-level ID missing from DB, use the local default
-          const localById = Object.fromEntries(CATEGORIES_DEFAULT.map(c => [c.id, c]));
-          const merged = TOP_LEVEL_IDS.map(id => dbById[id] || localById[id]).filter(Boolean);
-          setCategories(merged);
+        if (dbC?.length) setCollections(dbC);
+        if (dbF?.length) setFinishes(dbF);
+        if (dbCat?.length) {
+          const TOP = ["bath-fittings","shower-systems","wash-basins","luxury-vanities","mirrors","sanitaryware-accessories"];
+          const byId = Object.fromEntries(dbCat.filter(c => TOP.includes(c.id)).map(c => [c.id, { ...c, subcategories: c.subcategories || [] }]));
+          const local = Object.fromEntries(CATEGORIES_DEFAULT.map(c => [c.id, c]));
+          setCategories(TOP.map(id => byId[id] || local[id]).filter(Boolean));
         }
-      } catch (e) {
-        // Supabase not configured — silently run in local mode
-        console.warn("[EVOKE] Running in local mode (Supabase not configured):", e.message);
-      } finally {
-        if (alive) setLoading(false);
-      }
+      } catch (e) { console.warn("[EVOKE] Local mode:", e.message); }
     })();
     return () => { alive = false; };
   }, []);
 
-  // ── Supabase CRUD handlers ──────────────────────────────────
-  const catMap = {
-    "bath-fittings": "BF", "shower-systems": "SS", "wash-basins": "WB",
-    "luxury-vanities": "LV", "mirrors": "MI", "sanitaryware-accessories": "SA",
-  };
+  // ── CRUD ─────────────────────────────────────────────────────
+  const catMap = { "bath-fittings":"BF","shower-systems":"SS","wash-basins":"WB","luxury-vanities":"LV","mirrors":"MI","sanitaryware-accessories":"SA" };
+  const genCode = (cid) => `VH-${catMap[cid]||"XX"}-${String(products.filter(p=>p.categoryId===cid).length+1).padStart(3,"0")}`;
 
-  const generateCode = (categoryId) => {
-    const cat = catMap[categoryId] || "XX";
-    const n = products.filter(p => p.categoryId === categoryId).length + 1;
-    return `VH-${cat}-${String(n).padStart(3, "0")}`;
-  };
-
-  const handleSaveProduct = async (data, productId) => {
-    const id = productId || data.id || generateCode(data.categoryId);
+  const handleSaveProduct = async (data, pid) => {
+    const id = pid || data.id || genCode(data.categoryId);
     try {
-      const saved = await saveProduct({ ...data, id }, productId || null);
-      if (saved) {
-        setProducts(prev =>
-          productId
-            ? prev.map(p => p.id === productId ? saved : p)
-            : [...prev, saved]
-        );
-        showToast(productId ? "Product updated" : "Product added");
-      } else {
-        // Supabase failed — fall back to local state update
-        setProducts(prev =>
-          productId
-            ? prev.map(p => p.id === productId ? { ...p, ...data } : p)
-            : [...prev, { ...data, id }]
-        );
-        showToast(productId ? "Product updated (local)" : "Product added (local)");
-      }
-    } catch {
-      setProducts(prev =>
-        productId
-          ? prev.map(p => p.id === productId ? { ...p, ...data } : p)
-          : [...prev, { ...data, id }]
-      );
-      showToast(productId ? "Product updated (local)" : "Product added (local)");
-    }
+      const saved = await saveProduct({ ...data, id }, pid || null);
+      if (saved) { setProducts(prev => pid ? prev.map(p => p.id===pid ? saved : p) : [...prev, saved]); showToast(pid ? "Product updated" : "Product added"); }
+      else { setProducts(prev => pid ? prev.map(p => p.id===pid ? {...p,...data} : p) : [...prev, {...data,id}]); showToast(pid ? "Product updated (local)" : "Product added (local)"); }
+    } catch { setProducts(prev => pid ? prev.map(p => p.id===pid ? {...p,...data} : p) : [...prev, {...data,id}]); showToast(pid ? "Product updated (local)" : "Product added (local)"); }
   };
-
-  const handleDeleteProduct = async (productId) => {
-    try { await deleteProduct(productId); } catch { /* local fallback */ }
-    setProducts(prev =>
-      prev.filter(p => p.id !== productId)
-          .map(p => ({ ...p, relatedProducts: (p.relatedProducts || []).filter(id => id !== productId) }))
-    );
-    showToast("Product deleted", "error");
-    navigate("admin-products");
+  const handleDeleteProduct = async (pid) => {
+    try { await deleteProduct(pid); } catch {}
+    setProducts(prev => prev.filter(p=>p.id!==pid).map(p => ({...p, relatedProducts:(p.relatedProducts||[]).filter(id=>id!==pid)})));
+    showToast("Product deleted","error"); navigate("admin-products");
   };
-
-  const handleDuplicateProduct = async (productId) => {
-    const source = products.find(p => p.id === productId);
-    if (!source) return;
-    const newId = generateCode(source.categoryId);
-    const copy = { ...source, id: newId, name: source.name + " (Copy)", published: false };
-    try {
-      const saved = await saveProduct(copy, null);
-      setProducts(prev => [...prev, saved || copy]);
-    } catch {
-      setProducts(prev => [...prev, copy]);
-    }
+  const handleDuplicateProduct = async (pid) => {
+    const src = products.find(p=>p.id===pid); if (!src) return;
+    const copy = { ...src, id: genCode(src.categoryId), name: src.name+" (Copy)", published: false };
+    try { const s = await saveProduct(copy,null); setProducts(prev=>[...prev, s||copy]); } catch { setProducts(prev=>[...prev,copy]); }
     showToast("Product duplicated");
   };
-
-  // Collections CRUD
   const handleSaveCollection = async (col) => {
-    try {
-      const saved = await saveCollection(col);
-      setCollections(prev =>
-        prev.some(c => c.id === col.id)
-          ? prev.map(c => c.id === col.id ? (saved || col) : c)
-          : [...prev, saved || col]
-      );
-    } catch {
-      setCollections(prev =>
-        prev.some(c => c.id === col.id)
-          ? prev.map(c => c.id === col.id ? col : c)
-          : [...prev, col]
-      );
-    }
+    try { const s = await saveCollection(col); setCollections(prev => prev.some(c=>c.id===col.id) ? prev.map(c=>c.id===col.id?(s||col):c) : [...prev,s||col]); }
+    catch { setCollections(prev => prev.some(c=>c.id===col.id) ? prev.map(c=>c.id===col.id?col:c) : [...prev,col]); }
   };
-
-  const handleDeleteCollection = async (id) => {
-    try { await deleteCollection(id); } catch { /* local fallback */ }
-    setCollections(prev => prev.filter(c => c.id !== id));
+  const handleDeleteCollection = async (id) => { try{await deleteCollection(id);}catch{} setCollections(prev=>prev.filter(c=>c.id!==id)); };
+  const handleSaveFinish = async (f) => {
+    try { const s = await saveFinish(f); setFinishes(prev => prev.some(x=>x.id===f.id) ? prev.map(x=>x.id===f.id?(s||f):x) : [...prev,s||f]); }
+    catch { setFinishes(prev => prev.some(x=>x.id===f.id) ? prev.map(x=>x.id===f.id?f:x) : [...prev,f]); }
   };
+  const handleDeleteFinish = async (id) => { try{await deleteFinish(id);}catch{} setFinishes(prev=>prev.filter(f=>f.id!==id)); };
+  const handleLogout = () => { localStorage.removeItem("vorhaus_admin_auth"); localStorage.removeItem("vorhaus_admin_email"); setAdminAuthenticated(false); rrNavigate("/"); };
 
-  // Finishes CRUD
-  const handleSaveFinish = async (finish) => {
-    try {
-      const saved = await saveFinish(finish);
-      setFinishes(prev =>
-        prev.some(f => f.id === finish.id)
-          ? prev.map(f => f.id === finish.id ? (saved || finish) : f)
-          : [...prev, saved || finish]
-      );
-    } catch {
-      setFinishes(prev =>
-        prev.some(f => f.id === finish.id)
-          ? prev.map(f => f.id === finish.id ? finish : f)
-          : [...prev, finish]
-      );
-    }
-  };
+  const shared = { navigate, products, categories, collections, finishes };
 
-  const handleDeleteFinish = async (id) => {
-    try { await deleteFinish(id); } catch { /* local fallback */ }
-    setFinishes(prev => prev.filter(f => f.id !== id));
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("vorhaus_admin_auth");
-    localStorage.removeItem("vorhaus_admin_email");
-    setAdminAuthenticated(false);
-    navigate("home");
-  };
-
-  // Admin route check
-  const isAdminRoute = currentPage.startsWith("admin");
-
-  // Render admin
-  if (isAdminRoute) {
+  // ── Admin ─────────────────────────────────────────────────────
+  if (location.pathname === "/admin") {
     if (!adminAuthenticated) return <AdminLogin onLogin={setAdminAuthenticated} />;
     return (
-      <AdminLayout currentPage={currentPage} navigate={navigate} onLogout={handleLogout} adminEmail={adminEmail}>
+      <AdminLayout currentPage={adminPage} navigate={navigate} onLogout={handleLogout} adminEmail={adminEmail}>
         <Toast toast={toast} />
-        {currentPage === "admin" && (
-          <AdminDashboard navigate={navigate} products={products} categories={categories}
-            onDelete={handleDeleteProduct} />
-        )}
-        {currentPage === "admin-products" && (
-          <AdminProductList navigate={navigate} products={products} categories={categories}
-            onDelete={handleDeleteProduct} onDuplicate={handleDuplicateProduct} />
-        )}
-        {(currentPage === "admin-add-product" || currentPage === "admin-edit-product") && (
-          <AdminProductForm navigate={navigate} params={pageParams}
-            products={products} categories={categories} collections={collections} finishes={finishes}
-            onSave={handleSaveProduct} onDelete={handleDeleteProduct} />
-        )}
-        {currentPage === "admin-categories" && (
-          <AdminCategories categories={categories} products={products} navigate={navigate} onDelete={handleDeleteProduct} />
-        )}
-        {currentPage === "admin-collections" && (
-          <AdminCollections collections={collections} onSave={handleSaveCollection} onDelete={handleDeleteCollection} products={products} navigate={navigate} />
-        )}
-        {currentPage === "admin-finishes" && (
-          <AdminFinishes finishes={finishes} onSave={handleSaveFinish} onDelete={handleDeleteFinish} products={products} />
-        )}
+        {adminPage === "admin"              && <AdminDashboard navigate={navigate} products={products} categories={categories} onDelete={handleDeleteProduct} />}
+        {adminPage === "admin-products"     && <AdminProductList navigate={navigate} products={products} categories={categories} onDelete={handleDeleteProduct} onDuplicate={handleDuplicateProduct} />}
+        {(adminPage==="admin-add-product"||adminPage==="admin-edit-product") && <AdminProductForm navigate={navigate} params={adminPageParams} products={products} categories={categories} collections={collections} finishes={finishes} onSave={handleSaveProduct} onDelete={handleDeleteProduct} />}
+        {adminPage === "admin-categories"   && <AdminCategories categories={categories} products={products} navigate={navigate} onDelete={handleDeleteProduct} />}
+        {adminPage === "admin-collections"  && <AdminCollections collections={collections} onSave={handleSaveCollection} onDelete={handleDeleteCollection} products={products} navigate={navigate} />}
+        {adminPage === "admin-finishes"     && <AdminFinishes finishes={finishes} onSave={handleSaveFinish} onDelete={handleDeleteFinish} products={products} />}
       </AdminLayout>
     );
   }
 
-  // Render public site
+  // ── Public site — single Routes tree, no nesting ──────────────
+  const isHeroPath = ["/", "/projects", "/about", "/architects-designers", "/inspiration", "/showrooms", "/collections", "/contact"].includes(location.pathname) || location.pathname.startsWith("/collections/");
+
   return (
     <div style={{ background: "#F5F1EA", minHeight: "100vh" }}>
       <Toast toast={toast} />
-      <Navbar navigate={navigate} currentPage={currentPage} categories={categories} />
+      <Navbar navigate={navigate} currentPage={location.pathname} isHeroPath={isHeroPath} categories={categories} />
 
-      {currentPage === "home" && (
-        <HomePage navigate={navigate} categories={categories} products={products} collections={collections} />
-      )}
-      {currentPage === "category" && (
-        <CategoryPage navigate={navigate} params={pageParams} categories={categories} />
-      )}
-      {currentPage === "product-listing" && (
-        <ProductListingPage navigate={navigate} params={pageParams}
-          products={products} categories={categories} finishes={finishes} />
-      )}
-      {currentPage === "product-detail" && (
-        <ProductDetailPage navigate={navigate} params={pageParams}
-          products={products} categories={categories} finishes={finishes} />
-      )}
-      {currentPage === "collections" && (
-        <CollectionsPage navigate={navigate} collections={collections} products={products} />
-      )}
-      {currentPage === "collection-detail" && (
-        <CollectionDetailPage navigate={navigate} params={pageParams}
-          collections={collections} products={products} categories={categories} />
-      )}
-      {currentPage === "contact" && <ContactPage navigate={navigate} />}
-      {currentPage === "projects" && <ProjectsPage navigate={navigate} />}
-      {currentPage === "inspiration" && <InspirationPage navigate={navigate} />}
-      {currentPage === "architects" && <ArchitectsPage navigate={navigate} />}
-      {currentPage === "hospitality" && <HospitalityPage navigate={navigate} />}
-      {currentPage === "showrooms" && <ShowroomsPage navigate={navigate} />}
-      {currentPage === "about" && <AboutPage navigate={navigate} />}
-  {currentPage === "search" && (
-    <SearchPage navigate={navigate} query={pageParams.query || ""} products={products} categories={categories} />
-  )}
+      <Routes>
+        <Route path="/"                                    element={<HomePage {...shared} />} />
+        <Route path="/products/:categoryId/:subcategoryId" element={<PLPRoute {...shared} />} />
+        <Route path="/products/:categoryId"               element={<CategoryRoute {...shared} />} />
+        <Route path="/products"                           element={<Navigate to={`/products/${categories[0]?.id || "bath-fittings"}`} replace />} />
+        <Route path="/product/:productId"                 element={<PDPRoute {...shared} />} />
+        <Route path="/collections/:collectionId"          element={<CollectionDetailRoute {...shared} />} />
+        <Route path="/collections"                        element={<CollectionsPage {...shared} />} />
+        <Route path="/projects"                           element={<ProjectsPage navigate={navigate} />} />
+        <Route path="/inspiration"                        element={<InspirationPage navigate={navigate} />} />
+        <Route path="/architects-designers"               element={<ArchitectsPage navigate={navigate} />} />
+        <Route path="/about"                              element={<AboutPage navigate={navigate} />} />
+        <Route path="/contact"                            element={<ContactPage navigate={navigate} />} />
+        <Route path="/showrooms"                          element={<ShowroomsPage navigate={navigate} />} />
+        <Route path="/search"                             element={<SearchRoute {...shared} />} />
+        <Route path="*"                                   element={<Navigate to="/" replace />} />
+      </Routes>
 
       <Footer navigate={navigate} categories={categories} />
     </div>
