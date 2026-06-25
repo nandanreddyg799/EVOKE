@@ -750,23 +750,36 @@ const PRODUCTS_DEFAULT = [
 // CORE SVG COMPONENTS
 // ═══════════════════════════════════════════
 
-const VMonogram = ({ size = 40, className = "", color = "currentColor" }) => (
-  <svg
-    width={size} height={size}
-    viewBox="0 0 60 60" fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    style={{ color }}
-  >
-    {/* Oval frame */}
-    <ellipse cx="30" cy="30" rx="28" ry="28" stroke="currentColor" strokeWidth="1.2" fill="none" />
-    {/* E letterform — vertical stem + three horizontal bars */}
-    <line x1="20" y1="16" x2="20" y2="44" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    <line x1="20" y1="16" x2="38" y2="16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    <line x1="20" y1="30" x2="35" y2="30" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    <line x1="20" y1="44" x2="38" y2="44" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-);
+// VMonogram — standalone circle-E mark (used in watermarks, loading states etc.)
+// For the wordmark lockup use <Wordmark> which builds proportions from fontSize.
+const VMonogram = ({ size = 40, className = "", color = "currentColor" }) => {
+  // Circle diameter = size. E font size = size × (1/1.3) so circle ≈ 130% of cap height.
+  const eFontSize = Math.round(size / 1.3);
+  return (
+    <div
+      className={className}
+      style={{
+        width: size, height: size,
+        borderRadius: "50%",
+        border: `${Math.max(1, size * 0.022)}px solid ${color}`,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        boxSizing: "border-box",
+      }}
+    >
+      <span style={{
+        fontFamily: "'Playfair Display', Georgia, serif",
+        fontSize: eFontSize,
+        fontWeight: 400,
+        lineHeight: 0,
+        color,
+        userSelect: "none",
+      }}>E</span>
+    </div>
+  );
+};
 
 const VMark = ({ size = 40, className = "" }) => (
   <div className={`flex flex-col items-center ${className}`}>
@@ -775,24 +788,71 @@ const VMark = ({ size = 40, className = "" }) => (
   </div>
 );
 
-const Wordmark = ({ className = "", style = {} }) => {
-  // fontSize from parent style; fall back to 22px for nav
-  const fs = style.fontSize || 22;
+// Wordmark — single source of truth for the EVOKE logo lockup.
+//
+// Proportions (from approved spec):
+//   Letter height  = fontSize  (100%)
+//   Circle diam.   = fontSize × 1.30  (130% of letter height)
+//   Gap circle→V   = fontSize × 0.14  (14% of letter height)
+//   Circle stroke  = fontSize × 0.022 (thin, elegant)
+//   E inside circle= fontSize          (same cap-height as VOKE letters)
+//
+// Works with numeric fontSize only. For clamp() pass a numeric fallback via
+// the `fs` prop, or use a wrapping element with an explicit numeric fontSize.
+const Wordmark = ({ className = "", style = {}, fs: fsProp }) => {
+  // Resolve fontSize — accept number, or parse from style, or default 22
+  const raw = fsProp ?? style.fontSize;
+  const fs  = typeof raw === "number" ? raw : 22;
   const color = style.color || "currentColor";
-  // SVG size: match cap-height ≈ 72% of font-size
-  // 1.3× font-size makes the circle height visually match Playfair uppercase
-  const monoSize = typeof fs === "number" ? Math.round(fs * 1.3) : 26;
+
+  const circleDiam  = fs * 1.16;   // restored — correct circle size
+  const strokeW     = Math.max(0.8, fs * 0.022);          // thin stroke
+  const gap         = fs * 0.03;                          // 3% gap — tight premium spacing
+  const eFontSize   = fs;   // same font-size as VOKE — identical rendered height
+
+  // Spread style EXCEPT fontSize/color which we handle explicitly
+  const { fontSize: _f, color: _c, ...restStyle } = style;
+
   return (
     <span
       className={`font-display inline-flex items-center ${className}`}
-      style={{ fontWeight: 400, letterSpacing: "0.22em", lineHeight: 1, ...style }}
+      style={{ lineHeight: 1, ...restStyle }}
     >
-      {/* Circle-E monogram replaces the "E" */}
-      <VMonogram size={monoSize} color={color} style={{ flexShrink: 0, display: "block" }} />
-      {/* VOKE — letter-spacing on the left compensates for the removed "E" gap */}
-      <span style={{ marginLeft: "0.18em", letterSpacing: "0.22em", paddingRight: "0.22em" }}>
-        VOKE
+      {/* Circle containing E */}
+      <span style={{
+        display:         "inline-flex",
+        alignItems:      "center",
+        justifyContent:  "center",
+        width:           circleDiam,
+        height:          circleDiam,
+        borderRadius:    "50%",
+        border:          `${strokeW}px solid ${color}`,
+        flexShrink:      0,
+        boxSizing:       "border-box",
+      }}>
+        <span style={{
+          fontFamily:  "'Playfair Display', Georgia, serif",
+          fontSize:    eFontSize,
+          fontWeight:  400,
+          lineHeight:  1,
+          color,
+          userSelect:  "none",
+          // Optical baseline lift — Playfair sits slightly low in the em box
+                  }}>E</span>
       </span>
+
+      {/* VOKE */}
+      <span style={{
+        fontFamily:    "'Playfair Display', Georgia, serif",
+        fontSize:      fs,
+        fontWeight:    400,
+        letterSpacing: "0.08em",
+        color,
+        lineHeight:    1,
+        marginLeft:    gap,
+        userSelect:    "none",
+        paddingRight:  "0.08em",
+      }}>VOKE</span>
     </span>
   );
 };
@@ -892,7 +952,25 @@ const Navbar = ({ navigate, currentPage, isHeroPath, categories }) => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const handleDropdownEnter = () => {
+    clearTimeout(dropdownTimer.current);
+    setDropdownOpen(true);
+  };
+  const handleDropdownLeave = () => {
+    dropdownTimer.current = setTimeout(() => setDropdownOpen(false), 300);
+  };
+
+  const navLinks = [
+    { label: "Products",               page: null,           hasDropdown: true,  pathPrefix: "/products" },
+    { label: "Collections",            page: "collections",                       pathPrefix: "/collections" },
+    { label: "Projects",               page: "projects",                          pathPrefix: "/projects" },
+    { label: "Inspiration",            page: "inspiration",                       pathPrefix: "/inspiration" },
+    { label: "Architects & Designers", page: "architects",                        pathPrefix: "/architects" },
+    { label: "About",                  page: "about",                             pathPrefix: "/about" },
+  ];
+
   const isHeroPage = ["/", "/projects", "/about", "/architects-designers", "/hospitality", "/inspiration", "/showrooms", "/collections", "/contact"].some(p => currentPage === p) || currentPage === "/";
+  const transparent = (isHeroPath ?? isHeroPage) && !scrolled && !dropdownOpen;
   const isActive = (link) => currentPage.startsWith(link.pathPrefix || "/__never__");
 
   return (
@@ -1304,7 +1382,7 @@ const HomePage = ({ navigate, categories, products, collections }) => {
           style={{ background: "linear-gradient(to bottom, rgba(14,14,13,0.45) 0%, rgba(14,14,13,0.75) 100%)" }} />
         <div className="relative z-10 text-center px-6 w-full" style={{ maxWidth: 800, marginTop: 40 }}>
           <div className="flex justify-center" style={{ marginBottom: 28 }}>
-            <Wordmark style={{ fontSize: "clamp(28px, 6vw, 52px)", color: "#F5F1EA", letterSpacing: "0.22em" }} />
+            <Wordmark fs={44} style={{ fontSize: "clamp(28px, 6vw, 52px)", color: "#F5F1EA" }} />
           </div>
           <p className="font-body uppercase text-warm-grey mb-8" style={{ fontSize: "clamp(10px, 2vw, 13px)", letterSpacing: "0.28em" }}>
             ARCHITECTURAL BATH SOLUTIONS
