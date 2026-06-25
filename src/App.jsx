@@ -1372,9 +1372,22 @@ const HomePage = ({ navigate, categories, products, collections }) => {
       <section className="relative flex items-center justify-center"
         style={{ height: "100vh", minHeight: 600, background: "linear-gradient(145deg, #D8CEC0 0%, #8F8981 60%, #171717 100%)" }}>
         <video
-          autoPlay muted loop playsInline
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          aria-hidden="true"
+          tabIndex={-1}
+          playsInline={true}
+          x-webkit-airplay="deny"
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ objectPosition: "center" }}
+          style={{
+            objectPosition: "center",
+            pointerEvents: "none",
+            display: "block",
+            WebkitMediaControlsPanel: "none",
+          }}
         >
           <source src={heroBgVideo} type="video/mp4" />
         </video>

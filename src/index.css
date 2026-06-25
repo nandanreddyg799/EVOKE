@@ -50,3 +50,15 @@ input, textarea, select { font-family: 'DM Sans', system-ui, sans-serif; }
  *   Admin UI      → 13–14px (no change — admin stays legible)
  * ────────────────────────────────────────────────────────────
  */
+
+/* ── Hero background video — suppress all native controls on iOS/Android ── */
+video.absolute {
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+video::-webkit-media-controls             { display: none !important; }
+video::-webkit-media-controls-enclosure  { display: none !important; }
+video::-webkit-media-controls-panel      { display: none !important; }
+video::-webkit-media-controls-play-button { display: none !important; }
+video::-webkit-media-controls-start-playback-button { display: none !important; }
